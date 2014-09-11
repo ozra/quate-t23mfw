@@ -1,0 +1,89 @@
+study(title = "XBT HLC-ANGL", overlay = false)
+
+fLen = input(5, 'fast len')
+sLen = input(720, 'slow len')
+
+b_open = security('BITSTAMP:BTCUSD', period, open)
+b_high = security('BITSTAMP:BTCUSD', period, high)
+b_low = security('BITSTAMP:BTCUSD', period, low)
+b_close = security('BITSTAMP:BTCUSD', period, close)
+
+m_open = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, open)
+m_high_pre = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, high)
+m_high = min(b_high*1.10, m_high_pre)   // kill rogue prices (huobi 140626)
+m_low = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, low)
+m_close = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, close)
+
+x_open = security('MTGOX:BTCUSD', period, open)
+x_high = security('MTGOX:BTCUSD', period, high)
+x_low = security('MTGOX:BTCUSD', period, low)
+x_close = security('MTGOX:BTCUSD', period, close)
+
+use_nna(s1, s2, s3) => na(s1) == 0 ? s1 : na(s2) == 0 ? s2 : s3
+
+_open = use_nna(m_open, b_open, x_open)
+_high = use_nna(m_high, b_high, x_high)
+_low = use_nna(m_low, b_low, x_low)
+_close = use_nna(m_close, b_close, x_close)
+
+_ohlc4 = (_open + _high + _low + _close) / 4
+_hlc3 = (_high + _low + _close) / 3
+_oc2 = (_open + _close) / 2
+_mid = _ohlc4 * 0.8 + _close * 0.2
+
+one = _close / _close
+mion = -one
+zero = _close * 0
+
+baseline(s) => s - sma(s, sLen)
+smoother(s) => ema(s, fLen)
+delta(s) => s[0] - s[1]
+nlog(s_in) =>
+    s = fixnan(s_in)
+    s // log(abs(s)) * sign(s)  // doesn't work. WTF why?
+
+hD = nlog(100 * delta(_high) / _ohlc4[1])
+lD = nlog(100 * delta(_low) / _ohlc4[1])
+cD = nlog(100 * delta(_close) / _ohlc4[1])
+hlcD = nlog(100 * delta(_hlc3) / _ohlc4[1])
+ohlcD = nlog(100 * delta(_ohlc4) / _ohlc4[1])
+midD = nlog(100 * delta(_mid) / _ohlc4[1])
+
+
+upper_raw = nlog(max(max(max(0, cD), hD), lD))
+lower_raw = nlog(min(min(min(0, cD), hD), lD))
+
+upper = smoother(upper_raw)
+lower = smoother(lower_raw)
+
+hDD = smoother(hD)
+lDD = smoother(lD)
+cDD = smoother(cD)
+hlcDD = smoother(hlcD)
+ohlcDD = smoother(ohlcD)
+midDD = smoother(midD)
+
+thresh = sma(abs(cDD), 500) * 1.618
+pf1 = plot(thresh * 1.618, color = #004000)
+plot(thresh, color = #004000)
+//hline(0, color = #ffff00)
+pf0 = plot(0)
+plot(-thresh, color = #400000)
+pf2 = plot(-thresh * 1.618, color = #400000)
+
+fill(pf1, pf0, color = #00ff00, transp = 90)
+fill(pf2, pf0, color = #ff0000, transp = 90)
+
+//plot(cDD, color = cDD > 0 ? #cfffcf : #ffcfcf, style = histogram, linewidth = 1)
+
+plot(upper * 0.618, color = #222222, style = line, linewidth = 3)
+plot(lower * 0.618, color = #222222, style = line, linewidth = 3)
+plot((upper + lower) * 0.618, color = #222222, style = line, linewidth = 5)
+
+plot(hDD, color = #00ff00, style = circles)
+plot(hDD, color = #00ff00, style = line)
+plot(lDD, color = #ff0000, style = circles)
+plot(lDD, color = #ff0000, style = line)
+plot(cDD, color = #5050ff, style = line)
+
+//plot(alma(cDD, 5 * 24, 0.85, 6) * 3)

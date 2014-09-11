@@ -1,0 +1,39 @@
+study(title="XBT Accumulative volatility", shorttitle="XBT Acc Volat", overlay=false)
+
+short_count = input(4)
+mid_count   = input(8)
+long_count  = input(12)
+
+closem = security('(BITFINEX:BTCUSD + BTCE:BTCUSD + BITSTAMP:BTCUSD + BTCCHINA:BTCCNY/FX:USDCNH) / 3', period, close)
+highm = security('(BITFINEX:BTCUSD + BTCE:BTCUSD + BITSTAMP:BTCUSD + BTCCHINA:BTCCNY/FX:USDCNH) / 3', period, high)
+lowm = security('(BITFINEX:BTCUSD + BTCE:BTCUSD + BITSTAMP:BTCUSD + BTCCHINA:BTCCNY/FX:USDCNH) / 3', period, low)
+
+v = (highm - lowm) + abs(closem - closem[1])
+cumvs = sum(v, short_count) / short_count
+cumvm = sum(v, mid_count) / mid_count
+cumvl = sum(v, long_count) / long_count
+
+cumv_combed1 = max(max(cumvs, cumvm), cumvl)
+cumv_combed2 = (cumvs + cumvm + cumvl) / 3 * 1.27
+
+cum_baseline = sma(cumvl, 300)
+
+//cum_comb = min(highest(nz(cum_comb),1000)*1.1, max(max(cumvl, cumvm*0.8), cumvs*0.8))
+//cum_comb = min(cum_baseline*4, max(max(cumvl, cumvm*0.8), cumvs*0.8))
+normed_val = (max(max(cumvl, cumvm*0.95), cumvs*0.95) + cum_baseline) / cum_baseline
+show_val_log = log(normed_val * 2) * cum_baseline * 5 - cum_baseline
+show_val = normed_val * cum_baseline * 2 - cum_baseline
+
+plot(cumvs, color=#444444, style=histogram)
+plot(cumvm, color=#5050ff)
+plot(cumvl, color=#ff5050)
+plot(cumv_combed1, color=#ffffaa)
+plot(cumv_combed2, color=#aaffff)
+
+// Create reasonable expectable limits in view for side by side comparisons
+//plot(cum_baseline, color=olive)
+//plot(cum_baseline * 20, color=olive)
+
+// pick ONE of log or linear. Depending on if visual measurements have any go...
+//plot(show_val, color=#ffffff)
+//plot(show_val_log, color=#ffffff)

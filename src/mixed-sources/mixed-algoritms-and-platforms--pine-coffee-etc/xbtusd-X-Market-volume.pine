@@ -1,0 +1,13 @@
+study(title="VOL XBT TIED", shorttitle="XBT MIX VOL", overlay=false)
+
+b_volume = security('BITSTAMP:BTCUSD', period, volume)
+m_volume = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BITFINEX:BTCUSD + BTCCHINA:BTCCNY)', period, volume)
+x_volume = security('MTGOX:BTCUSD', period, volume)
+_volume = na(m_volume) == 0 ? m_volume : na(b_volume) == 0 ? b_volume : x_volume
+
+//plot(b_volume)
+plot(_volume, style=histogram, color=#0000ff)
+plot(_volume, style=line, color=#00aaff)
+plot(ema(_volume,30), style=area, transp=80, color=#00aaff)
+//plot(highest(_volume, 500) * 5, color=#000000, style=circles)
+

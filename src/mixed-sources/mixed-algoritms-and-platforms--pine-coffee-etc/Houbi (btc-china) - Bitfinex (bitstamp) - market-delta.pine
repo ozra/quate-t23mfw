@@ -1,0 +1,47 @@
+study("Huobi Finex delta")
+
+closed = security('BITSTAMP:BTCUSD - BTCCHINA:BTCCNY/FX:USDCNH', period, close)
+highd = security('BITSTAMP:BTCUSD - BTCCHINA:BTCCNY/FX:USDCNH', period, high)
+lowd = security('BITSTAMP:BTCUSD - BTCCHINA:BTCCNY/FX:USDCNH', period, low)
+hlc3d = security('BITSTAMP:BTCUSD - BTCCHINA:BTCCNY/FX:USDCNH', period, hlc3)
+
+hlc3_basedev = (hlc3 - ema(hlc3, 200)) / 4
+close_basedev = (close - ema(close, 200)) / 4
+
+xma (s) =>
+    //alma(s, 24, 0.85, 9)
+    ema(s, 6)
+
+hline(0, color=#000000)
+hline(20)
+hline(-20)
+hline(25, color=#dddddd)
+hline(-25, color=#dddddd)
+
+//plot(xma( (closed + close_basedev) / 2 ), color=#00ffff)
+p1 = plot(0)
+p2 = plot(xma( (hlc3d + hlc3_basedev) / 2 ), color=#00aaff, linewidth=3)
+fill(p1,p2, transp=85, color=#0000ff)
+//plot(close_basedev, color=#dddddd, style=line)
+plot(hlc3_basedev, color=#f0f0f0, style=line)
+//plot(alma(basedev, 9, 0.85, 9), color=#dddddd, style=line)
+//plot(alma(basedev, 30, 0.85, 9))
+
+pm1 = plot(xma(hlc3d))
+plot(hlc3d, color=#777777)
+//pm2 = plot(hlc3d, color=#000000)
+//fill(pm1, pm2)
+
+//plot(ema(closed, 13), color=#aaaaaa)
+pl = plot(xma(lowd), color=#ff5555)
+ph = plot(xma(highd), color=#00ff00)
+
+fill(ph, pm1, color=#00ff00, transp=85)
+fill(pl, pm1, color=#ff0000, transp=85)
+
+plot(ema(closed, 24), color=#5555ff, style=circles)
+// Too long time spans for the corellation
+//plot(ema(closed, 50), color=#bbbbff, style=circles)
+//plot(ema(closed, 200), color=#ffbbbb, style=circles)
+
+

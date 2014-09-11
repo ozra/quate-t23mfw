@@ -1,0 +1,78 @@
+study(title="Plasma Clouds", overlay=true)
+// Oscar Campbell - 2014-07-08
+
+// Denna base-setup för EUR/USD 5 min.
+
+lblA = input(55, minval=1)
+lblB = input(89, minval=1)
+//lblC = input(105, minval=1)
+multer = input(1)
+//displacement = input(7, minval=1)
+
+lenA = lblA * multer
+lenB = lblB * multer
+
+fiblevSpec(sh, sl, hlen, llen, mult, ofs, thresh) =>
+    lowpoint = lowest(sl[ofs], llen)
+    height = highest(sh[ofs], hlen) - lowpoint
+    out = lowpoint + height * mult
+    mid = (sh + sl) / 2  // Note - compare point is "now", while calc point is ofsetted
+    abs(out - mid) / mid < thresh ? out : na
+
+fiblev(len, mult) => fiblevSpec(close, close, len, len, mult, 1, 0.99)
+fiblevHL(len, mult) => fiblevSpec(high, low, len, len, mult, 1, 0.99)
+fiblevS(hlen, llen, mult) => fiblevSpec(close, close, hlen, llen, mult, 1, 0.99)
+fiblevSHL(hlen, llen,  mult) => fiblevSpec(high, low, hlen, llen, mult, 1, 0.99)
+
+//0.382
+//0.5
+//0.681
+//0.764
+//0.864
+//1.27
+//1.382
+//1.618
+
+
+//plot(fiblev(lenB, 1.618), color=red, offset=10, style = circles)
+
+s138p1 = plot(fiblevHL(lenA, 1.382), color=purple, offset = 0, style=circles)  // A-1.3182+5 - KLOCKREN! (finex-test, 140708) Stoppar toppar på väg upp..
+s138p2 = plot(fiblev(lenB, 1.382), color=purple, offset = 0, style=circles)  // A-1.3182+5 - KLOCKREN! (finex-test, 140708) Stoppar toppar på väg upp..
+fill(s138p1, s138p2, color=purple, transp=90)
+
+//plot(fiblev(lenA, 1.27), color=#ff00ff, offset=34, style = circles)  // Blir en break på någon hill up, visar sen första bump uppe på toppen..
+
+//plot(fiblev(lenB, 0.681), offset=0, color=#00ffff, style = circles)
+//plot(fiblevHL(lenB, 0.681), offset=0, color=#00ffff, style = circles)
+
+b50Ap1 = plot(fiblev(lenB, 0.5), offset=0, color=blue, style=circles)
+b50Ap2 = plot(fiblevHL(lenB, 0.5), offset=0, color=blue, style=circles)
+fill(b50Ap1, b50Ap2, color=blue, transp=90)
+
+
+plot(fiblev(lenB, 0.382), offset=1, color=green, style = circles)
+
+
+//plot(fiblev(lenB, -0.15), offset=1, color=#ff5500, style=circles)
+
+sub3 = fiblev(lenA, -0.127)
+plot(sub3, color=#aa0050, offset=0, style = circles)
+s4Ap1 = plot(fiblevS(10, lenA, -0.127),color=#aa0050, offset=0, style = circles)
+s4Ap2 = plot(fiblevS(lenA, 10, -0.127),color=#aa0050, offset=0, style = circles)
+fill(s4Ap1, s4Ap2, color=#aa0050, transp=90)
+
+//s3p1 = plot(sub3, color=purple, offset=6, style=circles)
+//s3p2 = plot(fiblevHL(lenA, -0.27), color=purple, offset=6, style=circles)
+//fill(s3p1, s3p2, color=purple, transp=90)
+
+//plot(fiblev(lenB, -0.27), color=purple, offset=6, style = cross)
+//plot(fiblev(lenA, -0.681), color=purple, offset=6, style = cross)
+//plot(fiblev(lenA, -0.764), color=red, offset=lenB / 2, style = circles)
+
+//plot(fiblevHL(lenA, -0.5), color=#ff00ff, offset=5, style = line)
+//plot(sub1 / close < 0.90 ? na :sub1, color=red, offset=21, style = circles)
+//sub2 = fiblev(lenA, -0.864)
+//s1p1 = plot(fiblev(13, -0.5), color=red, offset=10, style = circles)
+//s2p2 = plot(fiblev(13, -0.864), color=red, offset=10, style = circles)
+//
+//fill(s1p1, s2p2, color=red, transp=90)

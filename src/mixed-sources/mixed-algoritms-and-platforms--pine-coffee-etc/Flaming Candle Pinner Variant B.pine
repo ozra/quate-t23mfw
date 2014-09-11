@@ -1,0 +1,74 @@
+study("Pin Flamy Candle")
+
+
+// *TODO* current-wick ska spela en större roll, en bara sum av 5 - kör ema! och slå emot sma * 4 eller så
+// - vi väger alltså ups mot downs, men värderar också nu emot då
+
+// *TODO* bars som är längre än current och in support (non shading) ger högre score - gå antingen på
+// math ratio annars boolean ( > thresh..)
+
+// *TODO* wicks när shadow-läge är överhängande bör snarare ha motsatt betydelse
+// - "sträven", en rejection
+
+
+// Notes: In most cases there's not a killer dive _directly_ after the pin. It's better to check
+// what's cracking after, to avoid false b/s, and miss some oppurtunities (well, actually.. a limit
+// order could be put below or above, thereby kicking off _only_ if the promise of direction is
+// fulfilled - yeay!!!)
+
+wickperiod = input(4)
+use_hl = input(false, "Use high/low for distance, not hoc/loc", type=bool)
+use_exp_sum = input(true, "Use exponential candle shadow summing", type=bool)
+
+VIEW_LIMIT = 0.023
+
+open_ = security(tickerid, period)
+
+wsqrt(v) => v > 0 ? sqrt(v) : -sqrt(-v)
+wlog(v) => v > 0 ? log(v) : -log(-v)
+get_baseline(s) => sma(ema(nz(s), 1000), 100)
+mod_ooback(s) => wsqrt(s)   // sqrt(s) // 1 // s
+
+range = high - low
+body = abs(close - open)
+hoc = max(open, close)
+loc = min(open, close)
+
+
+// // // //
+// higher / lower bars before _this_ bar
+minhoc(i) => -min(0, hoc - (use_hl ? high[i] : hoc[i])) / ((use_exp_sum ? i : 2) / 2)
+maxhoc(i) => max(0, loc - (use_hl ? low[i] : loc[i])) / ((use_exp_sum ? i : 2) / 2)
+//minhoc(i) => -min(0, hoc - hoc[i])
+//maxhoc(i) => max(0, loc - loc[i])
+
+hhoc_back = (minhoc(1) + minhoc(2) + minhoc(3) + minhoc(4) + minhoc(5) + minhoc(6)) / 6
+hloc_back = (maxhoc(1) + maxhoc(2) + maxhoc(3) + maxhoc(4) + maxhoc(5) + maxhoc(6)) / 6
+ooback = hhoc_back - hloc_back
+
+// *TODO* count _two_ bodys before _this_ - _longer than _this_ = plus, else minus or zero
+
+hwick = high - hoc
+lwick = loc - low
+wicks = lwick + hwick
+
+
+hwicks = wsqrt(sum(hwick * (mod_ooback(ooback < 0 ? -ooback : 0)), wickperiod)) //* 100
+lwicks = wsqrt(sum(lwick * (mod_ooback(ooback > 0 ? ooback : 0)), wickperiod)) //* 100
+
+hbase = get_baseline(hwicks)
+lbase = get_baseline(lwicks)
+
+wick_balance = lwicks - hwicks
+
+show_bal_lgc = not (
+    (wick_balance > wick_balance[1] and wick_balance < 0) or
+    (wick_balance < wick_balance[1] and wick_balance > 0))
+
+plot((wick_balance), color = #666600, style=line, linewidth = 1)
+plot((wick_balance), color = show_bal_lgc ? wick_balance > 0 ? #00ff00 : #ff0000 : #666600, style=circles, linewidth = 2)
+
+thresh_pl1 = plot(hbase*2.681, color=#444444)
+//thresh_pl2 = plot(-lbase*1.618, color=#444444)
+thresh_pl2 = plot(lbase*2.681, color=#444444)
+fill(thresh_pl1, thresh_pl2, color=#000000, transp=60)

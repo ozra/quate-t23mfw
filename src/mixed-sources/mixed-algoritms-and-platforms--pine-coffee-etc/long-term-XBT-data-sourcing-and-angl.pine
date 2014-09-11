@@ -1,0 +1,86 @@
+study(title = "HLC-ANGL XBT FIXED", overlay = false)
+
+fLen = input(5, 'fast len')
+sLen = input(720, 'slow len')
+dayMult = input(24, 'day compare mult')
+
+b_open = security('BITSTAMP:BTCUSD', period, open)
+b_high = security('BITSTAMP:BTCUSD', period, high)
+b_low = security('BITSTAMP:BTCUSD', period, low)
+b_close = security('BITSTAMP:BTCUSD', period, close)
+
+m_open = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, open)
+m_high = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, high)
+m_low = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, low)
+m_close = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, close)
+
+x_open = security('MTGOX:BTCUSD', period, open)
+x_high = security('MTGOX:BTCUSD', period, high)
+x_low = security('MTGOX:BTCUSD', period, low)
+x_close = security('MTGOX:BTCUSD', period, close)
+
+_open = na(m_open) == 1 ? na(b_open) == 1 ? x_open : b_open : m_open
+_high = na(m_high) == 1 ? na(b_high) == 1 ? x_high : b_high : m_high
+_low = na(m_low) == 1 ? na(b_low) == 1 ? x_low : b_low : m_low
+_close = na(m_close) == 1 ? na(b_close) == 1 ? x_close : b_close : m_close
+
+_ohlc4 = (_open + _high + _low + _close) / 4
+_hlc3 = (_high + _low + _close) / 3
+
+one = _close / _close
+mion = -one
+zero = _close * 0
+
+
+base_smooth(s) =>
+    ema(s, fLen) - sma(s, sLen)
+
+oD = base_smooth(_open)
+hD = base_smooth(_high)
+lD = base_smooth(_low)
+cD = base_smooth(_close)
+_oc2 = (_open + _close) / 2
+ocD = base_smooth(_oc2)
+hlcD = base_smooth(_hlc3)
+ohlcD = base_smooth(_ohlc4)
+midD = base_smooth(_ohlc4 * 0.8 + _close * 0.2)
+
+i1 = hlcD > cD ? one : mion
+i2 = ohlcD > hlcD ? one : mion
+i3 = hlcD < ocD ? one : mion
+i4 = cD < oD ? one : mion
+i5 = hD > cD ? one : mion
+
+//plot(cD - 0.003, color = i1==1 ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+//plot(cD - 0.004, color = i2==1 ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+//plot(cD - 0.005, color = i3==1 ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+//plot(cD - 0.006, color = i4==1 ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+//plot(cD - 0.007, color = i5==1 ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+// //plot(cD - 0.008, color = lD > cD ? #ff0000 : #00ff00, linewidth = 2, style = circles)
+
+hDD = hD - hD[1]
+lDD = lD - lD[1]
+cDD = (cD - cD[1])
+hlcDD = (hlcD - hlcD[1])
+ohlcDD = (ohlcD - ohlcD[1])
+midDD = (midD - midD[1])
+
+thresh = sma(abs(cDD), 500) * 1.618
+plot(thresh*1.618)
+plot(thresh)
+hline(0)
+plot(-thresh)
+plot(-thresh*1.618)
+
+plot(cDD, color = cDD > 0 ? #cfffcf : #ffcfcf, style = histogram, linewidth = 5)
+
+plot(hDD, color = #00ff00, style = circles)
+plot(hDD, color = #00ff00, style = line)
+plot(lDD, color = #ff0000, style = circles)
+plot(lDD, color = #ff0000, style = line)
+//plot(cDD, color = #0000ff, style = circles)
+plot(cDD, color = #5050ff, style = line)
+
+udClr = midD > cD ? #ff00ff : #00ffff
+plot(midDD, color = #000000, style = line)
+plot(midDD, color = udClr, style = circles)

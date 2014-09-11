@@ -1,0 +1,56 @@
+study(title = "HI-X10 XBT FIXED", shorttitle='HiX10 XBT', overlay=true)
+
+
+
+
+
+// COMPLETELY WORTHLESS !!!!!
+
+
+
+
+multer = input(1)
+diver = input(7)
+
+len1raw = input(50)
+len2raw = input(110)
+len3raw = input(250)
+len4raw = input(500)
+
+b_open = security('BITSTAMP:BTCUSD', period, open)
+b_high = security('BITSTAMP:BTCUSD', period, high)
+b_low = security('BITSTAMP:BTCUSD', period, low)
+b_close = security('BITSTAMP:BTCUSD', period, close)
+
+m_open = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, open)
+m_high = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, high)
+m_low = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, low)
+m_close = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, close)
+
+x_open = security('MTGOX:BTCUSD', period, open)
+x_high = security('MTGOX:BTCUSD', period, high)
+x_low = security('MTGOX:BTCUSD', period, low)
+x_close = security('MTGOX:BTCUSD', period, close)
+
+_open = na(m_open) == 1 ? na(b_open) == 1 ? x_open : b_open : m_open
+_high = na(m_high) == 1 ? na(b_high) == 1 ? x_high : b_high : m_high
+_low = na(m_low) == 1 ? na(b_low) == 1 ? x_low : b_low : m_low
+_close = na(m_close) == 1 ? na(b_close) == 1 ? x_close : b_close : m_close
+
+_ohlc4 = (_open + _high + _low + _close) / 4
+_hlc3 = (_high + _low + _close) / 3
+
+len1 = len1raw / diver * multer
+len2 = len2raw / diver * multer
+len3 = len3raw / diver * multer
+len4 = len4raw / diver * multer
+
+plot(highest(_high, len1), color=#0000ff, linewidth=1)
+plot(highest(_high, len2), color=#0033ff, linewidth=1)
+plot(highest(_high, len3), color=#3366ff, linewidth=1)
+plot(highest(_high, len4), color=#66aaff, linewidth=1)
+
+plot(highest(_high, len1) * 10, color=#0000ff, linewidth=2)
+plot(highest(_high, len2) * 10, color=#0033ff, linewidth=2)
+plot(highest(_high, len3) * 10, color=#3366ff, linewidth=2)
+plot(highest(_high, len4) * 10, color=#66aaff, linewidth=2)

@@ -1,0 +1,24 @@
+b_open = security('BITSTAMP:BTCUSD', period, open)
+b_high = security('BITSTAMP:BTCUSD', period, high)
+b_low = security('BITSTAMP:BTCUSD', period, low)
+b_close = security('BITSTAMP:BTCUSD', period, close)
+
+m_open = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, open)
+m_high = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, high)
+m_low = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, low)
+m_close = security('(BITSTAMP:BTCUSD + BTCE:BTCUSD + BTCCHINA:BTCCNY / FX:USDCNH) / 3', period, close)
+
+x_open = security('MTGOX:BTCUSD', period, open)
+x_high = security('MTGOX:BTCUSD', period, high)
+x_low = security('MTGOX:BTCUSD', period, low)
+x_close = security('MTGOX:BTCUSD', period, close)
+
+use_nna(s1, s2, s3) => na(s1) == 0 ? s1 : na(s2) == 0 ? s2 : s3
+
+_open = use_nna(m_open, b_open, x_open)
+_high = use_nna(m_high, b_high, x_high)
+_low = use_nna(m_low, b_low, x_low)
+_close = use_nna(m_close, b_close, x_close)
+
+_ohlc4 = (_open + _high + _low + _close) / 4
+_hlc3 = (_high + _low + _close) / 3

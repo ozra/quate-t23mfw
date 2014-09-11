@@ -1,0 +1,67 @@
+study("USD Krivo IX", shorttitle="KRIX-USD")
+
+src = hlc3
+lengthMA = input(50)
+lengthMA2 = input(200)
+lengthMA3 = input(500)
+
+// Helper fns
+calc_score(s, l) =>
+    ma = sma(s, l)
+    s >= ma ? 1 : -1
+
+calc_invscore(s, l) =>
+    score=calc_score(s,l)
+    -1 * score
+
+// USD
+ixusd1=security("FX:AUDUSD", period, src)
+ixusd2=security("FX:EURUSD", period, src)
+ixusd3=security("FX:GBPUSD", period, src)
+ixusd4=security("FX:NZDUSD", period, src)
+
+iusdx1=security("FX:USDCHF", period, src)
+iusdx2=security("FX:USDDKK", period, src)
+iusdx3=security("FX:USDCAD", period, src)
+iusdx4=security("FX:USDJPY", period, src)
+iusdx5=security("FX:USDPLN", period, src)
+iusdx6=security("FX:USDSEK", period, src)
+iusdx7=security("FX:USDNOK", period, src)
+iusdx8=security("FX:USDHUF", period, src)
+iusdx9=security("FX:USDTRY", period, src)
+iusdx10=security("FX:USDCZK", period, src)
+iusdx11=security("FX:USDSGD", period, src)
+iusdx12=security("FX:USDCNH", period, src)
+
+calc_combed(len) =>
+    (-calc_score(ixusd1, len)) +
+        (-calc_score(ixusd2, len)) +
+        (-calc_score(ixusd3, len)) +
+        (-calc_score(ixusd4, len)) +
+        calc_score(iusdx1, len) +
+        calc_score(iusdx2, len) +
+        calc_score(iusdx3, len) +
+        calc_score(iusdx4, len) +
+        calc_score(iusdx5, len) +
+        calc_score(iusdx6, len) +
+        calc_score(iusdx7, len) +
+        calc_score(iusdx8, len) +
+        calc_score(iusdx9, len) +
+        calc_score(iusdx10, len) +
+        calc_score(iusdx11, len) +
+        calc_score(iusdx12, len)
+
+// Calculate KI
+usd_t = -calc_combed(lengthMA) / 8
+usd_t2 = -calc_combed(lengthMA2) / 2
+usd_t3 = -calc_combed(lengthMA3)
+
+hline(0, color=#00ff00)
+plot(usd_t, color=#003355, linewidth=2, title="USD KI")
+plot(usd_t2, color=maroon, linewidth=1, title="USD KI 2")
+plot(usd_t3, color=maroon, linewidth=2, title="USD KI 3")
+
+mixed = usd_t + usd_t2 + usd_t3
+plot(mixed, color=olive, linewidth=2, title="USD KI X 2")
+plot(alma(mixed, 6, 0.86, 6), color=#ffff00, linewidth=1, title="USD KI X 2")
+plot(alma(mixed, 100, 0.86, 6), color=#ff7700, linewidth=1, title="USD KI X 3")

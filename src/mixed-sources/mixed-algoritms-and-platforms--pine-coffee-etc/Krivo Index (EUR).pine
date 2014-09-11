@@ -1,0 +1,64 @@
+study("EUR Krivo IX", shorttitle="KRIX-EUR")
+
+src = hlc3
+lengthMA = input(50)
+lengthMA2 = input(200)
+lengthMA3 = input(500)
+
+// Helper fns
+calc_score(s, l) =>
+    ma = sma(s, l)
+    s >= ma ? 1 : -1
+
+calc_invscore(s, l) =>
+    score=calc_score(s,l)
+    -1 * score
+
+// EUR
+
+
+ieurx1 = security("FX:EURAUD", period, src)
+ieurx2 = security("FX:EURPLN", period, src)
+ieurx3 = security("FX:EURCAD", period, src)
+ieurx4 = security("FX:EURSEK", period, src)
+ieurx5 = security("FX:EURCHF", period, src)
+ieurx6 = security("FX:EURTRY", period, src)
+ieurx7 = security("FX:EURCZK", period, src)
+ieurx8 = security("FX:EURUSD", period, src)
+ieurx9 = security("FX:EURDKK", period, src)
+ieurx10 = security("FX:EURGBP", period, src)
+ieurx11 = security("FX:EURHUF", period, src)
+ieurx12 = security("FX:EURJPY", period, src)
+ieurx13 = security("FX:EURNOK", period, src)
+ieurx14 = security("FX:EURNZD", period, src)
+
+calc_combed(len) =>
+        calc_score(ieurx1, len) +
+        calc_score(ieurx2, len) +
+        calc_score(ieurx3, len) +
+        calc_score(ieurx4, len) +
+        calc_score(ieurx5, len) +
+        calc_score(ieurx6, len) +
+        calc_score(ieurx7, len) +
+        calc_score(ieurx8, len) +
+        calc_score(ieurx9, len) +
+        calc_score(ieurx10, len) +
+        calc_score(ieurx11, len) +
+        calc_score(ieurx12, len) +
+        calc_score(ieurx13, len) +
+        calc_score(ieurx14, len)
+
+// Calculate KI
+eur_t = calc_combed(lengthMA) / 8
+eur_t2 = calc_combed(lengthMA2) / 2
+eur_t3 = calc_combed(lengthMA3)
+
+hline(0, color=#00ff00)
+plot(eur_t, color=#003355, linewidth=2, title="EUR KI")
+plot(eur_t2, color=maroon, linewidth=1, title="EUR KI 2")
+plot(eur_t3, color=maroon, linewidth=2, title="EUR KI 3")
+
+mixed = eur_t + eur_t2 + eur_t3
+plot(mixed, color=olive, linewidth=2, title="EUR KI X 2")
+plot(alma(mixed, 6, 0.86, 6), color=#ffff00, linewidth=1, title="EUR KI X 2")
+plot(alma(mixed, 100, 0.86, 6), color=#ff7700, linewidth=1, title="EUR KI X 3")
