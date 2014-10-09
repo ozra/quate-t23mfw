@@ -12,6 +12,11 @@
 #ifndef QUANTBASE_HH
 #define QUANTBASE_HH
 
+
+// *TODO* MOVE TO MAKEFILE SOMEHOW
+#define IS_DEBUG
+
+
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -70,7 +75,6 @@ class bad_calc: public std::exception {  //  - 2014-08-12/ORC(19:51)
 #define QuantFloat      float
 #define QuantReal       double  // float
 #define QuantDouble     double
-
 
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 using namespace std;

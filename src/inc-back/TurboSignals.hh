@@ -10,20 +10,20 @@
 #include <vector>
 #include <functional>
 
+//typedef void (*)(void) VoidFn;
+//typedef std::function<void(void)> VoidFn;
+typedef std::function<void()> VoidFn;
+//typedef auto(*)() VoidFn;
+
 //template <typename... A>
 class TurboSignal {
   public:
-    TurboSignal() {};
-    ~TurboSignal() {};
-
-    void operator() (std::function<void(void)>);
-    void connect (std::function<void(void)>);
+    void operator() (VoidFn);
+    void connect (VoidFn);
     void emit ();
 
   private:
-    //std::vector<void(A...)> funcs;
-    //std::vector<void (*)(void)> funcs;
-    std::vector<std::function<void(void)>> funcs;
+    std::vector<VoidFn> funcs;
 
 };
 

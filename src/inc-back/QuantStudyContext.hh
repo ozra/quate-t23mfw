@@ -10,6 +10,7 @@
 #include "QuantBase.hh"
 
 class QuantFeed;    // Forward declaration
+class QuantPeriodization;
 
 class QuantStudyContext {
   public:
@@ -20,9 +21,12 @@ class QuantStudyContext {
     virtual void deinit () = 0;
     int serialize ();
 
-    void addFeed ( QuantFeed *feed );
+    auto add ( QuantFeed *feed ) -> QuantStudyContext &;
+    auto add ( QuantPeriodization *periodization ) -> QuantStudyContext &;
 
     vector<QuantFeed *> feeds;
+    vector<QuantPeriodization *> periodizations;
+    //vector<AbstractQuantBuffer *> buffers;    // these are stored in the periodizations - safi?
 
   private:
     Hash conf;

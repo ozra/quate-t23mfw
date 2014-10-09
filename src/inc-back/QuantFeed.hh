@@ -13,18 +13,24 @@
 
 #include "QuantBase.hh"
 #include "QuantStudyContext.hh"
+#include "QuantBuffers.hh"
 
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-//template <typename T>
-//typedef boost::circular_buffer<T> circular<T>;
-#define circular boost::circular_buffer
+//#define circular boost::circular_buffer
 
 // We will never really need much back-looking on ticks, more than for seconds-worth of chase-operations..  - 2014-08-29/ORC(01:53)
 #define TICKS_BUF_LEN 5000
 
-#define QuantDataFlags int
+//#define QuantDataFlags unsigned int
+#define QuantDataFlags unsigned char
+
+
+
+
+
+
 /*
 
 struct QuantDataFlags {
@@ -51,13 +57,28 @@ struct QuantDataFlags {
 
 */
 
+
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 class QuantTick {
   public:
-    //                    QuantTick () {};
+                        QuantTick () {};
+
+                        QuantTick (
+                            QuantTime, QuantDataFlags,
+                            QuantReal, QuantReal,
+                            QuantReal, QuantReal
+                        );
     //                    ~QuantTick () {};
+
+    inline bool isGhostTick () {
+        return flags & 1;
+    }
+
+    inline bool setGhostTick () {
+        return flags |= 1;
+    }
 
     QuantTime           time;
     QuantDataFlags      flags;
@@ -72,9 +93,45 @@ class QuantTick {
 
 };
 
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+class QuantSequentialDataAbstract
+{
+  public:
+    QuantSequentialDataAbstract ();
+    ~QuantSequentialDataAbstract ();
+    virtual bool init ( QuantTime start_date, QuantTime end_date );
+    virtual bool doInit () = 0;
+
+    // *TODO* QuantSequentialData should return a pointer to decoded
+    // data-struct - not meddle with application specific data types!
+    // - 2014-09-16/ORC(12:33)
+    virtual bool readTick ( QuantTick &tick ) = 0;
+
+  //private:
+    QuantTime start_date, end_date;
+
+};
+
+class QuantSequentialDataDukascopy : QuantSequentialDataAbstract
+{
+  public:
+    bool doInit() final;
+    bool readTick( QuantTick &tick ) final;
+
+    int loadNextSegment();
+
+  private:
+    int pos = 0, buf_len = 0;
+
+};
+
 
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 
 enum FeedState {
     UNDEF = 0,
@@ -82,39 +139,57 @@ enum FeedState {
     LIVE
 };
 
+/*
+class QuantFeedAbstract {
+};
+*/
+
+
 class QuantFeed {
   public:
-    QuantFeed (QuantStudyContext &context, Str broker_id, Str symbol_id,
-               QuantTime start_date, QuantTime end_date);
-
-    QuantFeed (QuantStudyContext &context, Str broker_id, Str symbol_id,
-               QuantTime start_date);
+    QuantFeed (QuantStudyContext &context,
+               Str broker_id,
+               Str symbol_id,
+               QuantTime start_date,
+               QuantTime end_date
+    );
 
     ~QuantFeed ();
 
     bool                readNext ();
     void                emit ();    // When in back-testing mode, this is called 'manually' by the mainloop the keeps track of which feed is next in line
-    void                setLiveMode();
+    void                setLiveMode ();
 
-    TurboSignal         onPreTick;
-    //Emitter<void (const vector<QuantTick> &ticks)>
-    Emitter<void ()>    onTick;
+    ////Emitter<void (const vector<QuantTick> &ticks)>
+    TurboSignal         onRegulatedTick;
+    TurboSignal         onRealTick;
 
-    #define circ_buf boost::circular_buffer
-    circ_buf<QuantTick> ticks;
-    //circular<QuantTick>   // *TODO* pure circular buffer will be perfect here!
-    //    ticks(TICKS_BUF_LEN);
+    ReversedCircularStructBuffer<QuantTick> ticks;
+
+    QuantSequentialDataAbstract *sequential_data_interface;
 
   private:
     void                handleData ();
-    int                 loadNextSegment ();
-
-    //Mantissation &
-    //    mantisator;
     QuantStudyContext   &context;
-    Str                 broker_id, symbol_id;
-    QuantTime           start_date, end_date;
+    Str                 broker_id,
+                        symbol_id;
+    QuantTime           start_date,
+                        end_date;
     FeedState           state = UNDEF;
+    int                 regulated_interval;
+    int                 day_epoch_offset;
+
 };
+
+/*
+class QuantFeedAggregator {
+
+    add ( QuantFeedAbstract *feed ) {
+        feeds.push_back( feed );
+        feed->onRealTick()
+    }
+};
+*/
+
 
 #endif

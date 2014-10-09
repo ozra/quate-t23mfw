@@ -12,16 +12,16 @@ Generally
 - "name things for what they are"  
 - "put things where they belong"  
 - "keep similar things close to each other", and finally  
-- "don't worry about it, you hopefully have an IDE that will help you quickly navigate between pieces of code".
 
 Our outline
 -----------------
 - **_src_** - source files, a folder for each namespace/package to easily retrieve files (even header files for C/C\++)  
-- **_inc_** - for C/C++ headers file (copied by IDE/makefile/etc...)  **_ext_** - for externals/third-party libraries, it is simple to add externals (such as SVN repositories). Inside, a folder for each libraries (binaries and include files). _"lib"_ has gotten to many ad-hoc de facto associations, so we avoid that in the source-tree.  
+- **_inc_** - for C/C++ "interface" header files  
+- **_ext_** - for externals/third-party libraries. Inside, a folder for each library (binaries, include files and source). _"lib"_ has gotten to many ad-hoc de facto associations, so we avoid that in the source-tree.  
 - **_bin_** - for built binaries, could be quickly exported for release  
-- **_obj_** - for all temporarily generated files (.class, .obj etc...) and it could be ignored (for example by SVN)  
+- **_obj_** - for all temporarily generated files (.o, .class, .obj etc...)  
 - **_doc_** - for any documentation, usually generated with Doxygen  
-- **_res_** - by placing resources here, it's possible to separate text source files and binary resources used by the program. I don't really have specific hierarchy inside.  
+- **_res_** - by placing resources here, it's possible to separate text source files and binary resources used by the program. No specific hierarchy inside.  
 
 C++ learning
 ============

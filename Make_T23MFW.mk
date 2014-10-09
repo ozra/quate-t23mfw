@@ -1,39 +1,6 @@
-#CC=gcc
-#CXX=g++
-#RM=rm -f
-#CPPFLAGS=-g -std=c++11 -pthread
-#LDFLAGS=-g $(shell root-config --ldflags)
-#LDLIBS=$(shell root-config --libs)
-#
-## SRCS=tool.cc support.cc
-#SRC_DIR=src
-#SRCS=$(sort $(notdir $(wildcard ${SRC_DIR}/*.cc)) )
-#OBJS=$(subst .cc,.o,$(SRCS))
-#
-#all: t23m-specific
-#
-#t23m-specific: $(OBJS)
-#	g++ $(LDFLAGS) -o tool $(OBJS) $(LDLIBS)
-#
-#depend: .depend
-#
-#.depend: $(SRCS)
-#	rm -f ./.depend
-#	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
-#
-#clean:
-#	$(RM) $(OBJS)
-#
-#dist-clean: clean
-#	$(RM) *~ .dependtool
-#
-#include .depend
-
-# T23MFW_ROOT = './'
-
 T23SRC:=$(T23MFW_ROOT)/src
 
-T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc)
+T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc) $(wildcard $(T23SRC)/QuantTA/*.cc)
 T23MFW_OBJ_FILES := $(addprefix objs/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
 
 T23MFW_GCC_FLAGS=-pthread
@@ -52,9 +19,9 @@ ifeq ($(TARGET), RELEASE)
 	CC=g++
 else
 	# @echo "Does DEBUG build"
-	T23MFW_OPTIMISE_FLAGS=
+	T23MFW_OPTIMISE_FLAGS=-g -O0
 	T23MFW_DEBUG_FLAGS=-pedantic
-	CC=clang++
+	CC=clang++     # no can do because of static libs linking with dukascopy..
 	#CC=g++
 endif
 
