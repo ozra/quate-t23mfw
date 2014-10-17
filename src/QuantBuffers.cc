@@ -10,7 +10,7 @@
 #include "QuantBuffersBase.hh"
 #include "QuantBuffersReverseIndexedCircular.hh"
 #include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedAbstractBuffer.hh"
+#include "QuantBuffersSynchronizedBufferAbstract.hh"
 #include "QuantBuffersSynchronizedBuffer.hh"
 
 #endif

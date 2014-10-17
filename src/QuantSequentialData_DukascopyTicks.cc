@@ -31,6 +31,7 @@ class QuantSequentialData_DukascopyTicks : public QuantSequentialDataAbstract
   private:
     int loadNextChunk();
 
+    const int       session_break_duration_in_chunk_units = 24 * 2;
     std::string     symbol;
     double          point_decimals;
 
@@ -146,10 +147,9 @@ int QuantSequentialData_DukascopyTicks::loadNextChunk ()
 
     cerr << "date is " << to_iso_string(dts) << "\n";
 
-    Str symbol = "USDZAR";
-
     fs::path
-    filename = "tickdata/";
+    filename = "/usr/local/lib/T23MFW/";
+    filename/= "tickdata/";
     filename/= symbol;
     filename/= fuglyIntToStr( ymd.year, 1000 );
     filename/= fuglyIntToStr( ymd.month - 1, 10 );
@@ -232,7 +232,7 @@ bool QuantSequentialData_DukascopyTicks::readTick ( QuantTick &tick )
     //cerr << "readTick()" << "\n";
 
     if ( buf_pos >= byte_buffer_size ) {
-        int retries = 24 * 2 + 1;   // session break...
+        int retries = session_break_duration_in_chunk_units + 1;   // session break...
         int ret;
 
         while ( --retries > 0 ) {
@@ -280,13 +280,14 @@ bool QuantSequentialData_DukascopyTicks::readTick ( QuantTick &tick )
     buf_ptr += sizeof(unsigned int);
 
     // ask_vol
-    tick.last_qty = bytesTo_float(buf_ptr);
+    tick.volume = bytesTo_float(buf_ptr);
     buf_ptr += sizeof(unsigned int);
 
     // bid_vol
     // not used atm *TODO*
     float bidv = bytesTo_float(buf_ptr);
 
+    // This could ofcourse easily be removed by just keeping the buf_ptr walking
     buf_pos += n47::ROW_SIZE;
 
     //cerr << "QuantSequentialData_DukascopyTicks::readTick: " << tick.time << " ask: " << tick.ask << " bid: " << tick.bid << "\n";

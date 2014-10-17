@@ -17,8 +17,8 @@ class Median : public QTA::ObjectAbstract {
         int length,
         int max_lookback = 0
         /*, QuantBuffer input */,
-        QuantPeriodization &perian = *global_actives.active_periodization,
-        QuantFeed &feed = *global_actives.active_feed
+        QuantPeriodizationAbstract &perian = *global_actives.active_periodization,
+        QuantFeedAbstract &feed = *global_actives.active_feed
     );
 
     ~Median ();
@@ -30,6 +30,11 @@ class Median : public QTA::ObjectAbstract {
     void operator() ( QTA::ObjectAbstract &value );
     void operator[] ( int reverse_index );
 
+    operator QuantReal() const {
+        //return *((QuantReal *)result_ema.head_ptr);
+        return result;
+    };
+
   private:
     inline void calculateMedian ();
     //virtual void prime ( QuantReal value );    // prime the lookback with reasonable approximations, default values
@@ -37,8 +42,8 @@ class Median : public QTA::ObjectAbstract {
     int                 len;
     int                 lookback;
 
-    QuantPeriodization  &per;
-    QuantFeed           &feed;
+    QuantPeriodizationAbstract  &per;
+    QuantFeedAbstract           &feed;
 
     ReversedCircularStructBuffer<QuantReal> median_collection;
     QuantBuffer<QuantReal,0>                result;
@@ -76,11 +81,16 @@ sources)
 */
 
 
+
+/*
+ *
+ *
+
 Median::Median (
     int length,
     int max_lookback,
     QuantPeriodization &per,
-    QuantFeed &feed
+    QuantFeedAbstract &feed
 ) :
     len ( length ),
     lookback ( MAX( max_lookback, length) ),
@@ -111,9 +121,9 @@ Median::~Median ()
 void Median::calculateMedian ()
 {
     QuantReal median = 0.0;
-    /*
-     * *TODO* sort all the values / find the median that is....
-     */
+    //
+    // *TODO* sort all the values / find the median that is....
+    //
 
     int len = median_collection.size;
 
@@ -122,14 +132,15 @@ void Median::calculateMedian ()
     }
 
     median /= len;
-    /*
-     * *TODO* above
-     */
+    //
+    // *TODO* above
+    //
 
     median_collection.reset();
 
     result[0] = median;
 }
+*/
 
 /*
 Median::Median ( int length, QuantPeriodization &perian, QuantFeed &feed )

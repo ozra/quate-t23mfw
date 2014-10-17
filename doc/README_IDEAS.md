@@ -57,3 +57,30 @@ http://www.flotcharts.org/flot/examples/
 # TradingView API - for ideas / reference #
 https://docs.google.com/document/d/1rAigRhQUSLgLCzUAiVBJGAB7uchb-PzFVe0Bl8WTtF0/edit?pli=1#
 
+
+
+
+
+
+
+
+
+
+// 140926 - QuantFlux ( margin of error in markets) - thought through earlier
+// today (~1400) - time is now 21:17 - and the radio (P1 ?) is talking about
+// Quantum Fluctuations during the first 400KY after The Big, captured by the
+// Planck camera (which I thought was deemed to be cosmic dust and completely
+// moot - already. Anyways. Coincidence de luxe. And the pseudo scientific
+// writer of the book the programmed is centered around annoys me immensly -
+// hate his voice! Well, and pseudo babble.
+//
+// Well - the definition for the flamboyant term in market space is "The
+// variation of market price of a financial instrument amongst all available
+// - realisitcally suitable tradeable - markets. The search for the
+// gravitational multi body system, or 0-is-surface based or freely geometrical
+// space is based on the assumption that any deviations within Quant Flux is
+// of no importance (other than that the relative magnitude of QF may be
+// indiciative / confirming of impending (!) change.
+
+
+

@@ -7,5 +7,8 @@
 
 #include "QTA_Ema.hh"
 #include "QTA_Median.hh"
+#include "QTA_PeriodTickMean.hh"
+#include "QTA_Highest.hh"
+#include "QTA_Lowest.hh"
 
 #endif

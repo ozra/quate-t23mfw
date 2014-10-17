@@ -8,8 +8,8 @@
 // "Core"
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantFeed.hh"
-#include "QuantPeriodization.hh"
+//#include "QuantFeedAbstract.hh"
+#include "QuantPeriodizationAbstract.hh"
 //#include "QuantStudyContext.hh"
 
 #include "QTA_ObjectAbstract.hh"

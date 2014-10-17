@@ -17,6 +17,7 @@ class QuantSequentialDataAbstract
 
 
     // *TODO* implementation specials like point_decimals etc. should NOT be
+    // in the Abstract!!!
     virtual bool init (
         std::string p_symbol,
         double p_point_decimals,

@@ -9,8 +9,8 @@
 #include "QuantBase.hh"
 
 class QuantStudyContextAbstract;
-class QuantFeed;
-class QuantPeriodization;
+class QuantFeedAbstract;
+class QuantPeriodizationAbstract;
 
 class QuantExecutionContext {
   public:

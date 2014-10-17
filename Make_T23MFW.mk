@@ -1,49 +1,55 @@
 T23SRC:=$(T23MFW_ROOT)/src
 
 T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc) $(wildcard $(T23SRC)/QuantTA/*.cc)
-T23MFW_OBJ_FILES := $(addprefix objs/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
+T23MFW_OBJ_FILES_DEVDBG := $(addprefix objs/DbgDev/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
+T23MFW_OBJ_FILES_DEVFAST := $(addprefix objs/DevFast/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
+T23MFW_OBJ_FILES_NOBELT := $(addprefix objs/NoBelt/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
 
-T23MFW_GCC_FLAGS=-pthread
-T23MFW_CC_FLAGS=-std=c++11
 
-ifeq ($(TARGET), RELEASE)
-	# @echo "Does RELEASE build"
-	# -m32 or -m64
-	# 	-O3 or -O2
-	T23MFW_OPTIMISE_FLAGS=-O2 -fomit-frame-pointer -march=native -ffast-math \
-							-Wuninitialized -fomit-frame-pointer -DNDEBUG \
-							-flto
+# # # # # # # # # DBGDEV # # # # # # # # # # # #
+T23MFW_COMPILER_DBGDEV=clang++ \
+						-W -Wall -std=c++11 \
+						-g -O0 -pedantic \
+						-march=native \
+						-DIS_DEBUG -DIS_DEEPBUG \
+						-MMD
+#						-pthread \
 
-	# -o -Xlinker --stack=268435456
-	T23MFW_DEBUG_FLAGS=
-	CC=g++
-else
-	# @echo "Does DEBUG build"
-	T23MFW_OPTIMISE_FLAGS=-g -O0
-	T23MFW_DEBUG_FLAGS=-pedantic
-	CC=clang++     # no can do because of static libs linking with dukascopy..
-	#CC=g++
-endif
+T23MFW_LINKER_DBGDEV=clang++ -W -Wall -std=c++11 \
+						-g -O0 -pedantic \
+						-DIS_DEBUG -DIS_DEEPBUG
+#						-pthread \
 
-ifeq ($(TARGET_TYPE), DLL)
-	T23MFW_OPTIMISE_FLAGS+=
-	T23MFW_DEBUG_FLAGS+=
-	T23MFW_LINK_SPECS=
-else
-	T23MFW_OPTIMISE_FLAGS+=
-	T23MFW_DEBUG_FLAGS+=
-	T23MFW_LINK_SPECS=
-endif
 
-T23MFW_COMPILE_FLAGS= $(T23MFW_GCC_FLAGS) $(T23MFW_CC_FLAGS) -W -Wall ${T23MFW_OPTIMISE_FLAGS} ${T23MFW_DEBUG_FLAGS}
-T23MFW_COMPILE_FLAGS+= -MMD
-T23MFW_CC_COMPILE_FLAGS=$(T23MFW_COMPILE_FLAGS)
-T23MFW_LINK_FLAGS=${T23MFW_GCC_FLAGS} ${T23MFW_DEBUG_FLAGS} ${T23MFW_LINK_SPECS} -lutil
+# # # # # # # # # DEVFAST # # # # # # # # # # # #
+T23MFW_COMPILER_DEVFAST=g++ \
+						-W -Wall -std=c++11 \
+						-O2 -pedantic -march=native \
+						-fomit-frame-pointer -ffast-math -flto \
+						-fno-default-inline \
+						-DIS_DEBUG -DIS_DEVFAST \
+						-MMD
+#						-pthread \
 
-# t23m-test: $(OBJ_FILES)
-# 	g++ $(LINK_FLAGS) -o $@ $^
+T23MFW_LINKER_DEVFAST=g++ -W -Wall -std=c++11 \
+						-O2 -pedantic \
+						-fomit-frame-pointer -ffast-math -flto \
+						-fno-default-inline \
+						-DIS_DEBUG -DIS_DEVFAST
+#						-pthread \
 
-# obj/%.o: $(T23SRC)/%.cc
-# 	g++ $(T23MFW_CC_COMPILE_FLAGS) -c -o $@ $<
 
-# -include $(T23MFW_OBJ_FILES:.o=.d)
+# # # # # # # # # NOBELT # # # # # # # # # # # #
+T23MFW_COMPILER_NOBELT=g++ \
+						-W -Wall -std=c++11 \
+						-O3 -march=native \
+						-fomit-frame-pointer -ffast-math -flto \
+						-DNDEBUG -DIS_NOBELT \
+						-MMD
+#						-pthread \
+
+T23MFW_LINKER_NOBELT=g++ -W -Wall -std=c++11 \
+						-fomit-frame-pointer -ffast-math -flto \
+						-O3 -pedantic
+#						-pthread \
+

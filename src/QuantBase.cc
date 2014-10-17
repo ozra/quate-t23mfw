@@ -18,14 +18,14 @@
  */
 
 
-
-// *TODO* MOVE TO MAKEFILE SOMEHOW
-//#define IS_DEBUG
-
-
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
+// 141005/ORC - Hint the compiler as to conditional blocks that are more
+// or less likely to take place, thereby helping -freorder-blocks explicitly.
+#define LIKELY(expr)    (__builtin_expect(!!(expr), 1))
+#define UNLIKELY(expr)  (__builtin_expect(!!(expr), 1))
 
 typedef unsigned char byte;
 
@@ -107,15 +107,21 @@ class bad_calc: public std::exception {  //  - 2014-08-12/ORC(19:51)
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #define DEFAULT_BUFSIZE 32768
 
-//#define QuantTime       long long
-#define QuantDuration   pxt::time_duration
-#define QuantTime       pxt::ptime
-#define QuantInt        int
-#define QuantUInt       unsigned int     // which ever is fastest of unsigned and regular
-#define QuantFloat      float
-//#define QuantReal       double  // float
-typedef double          QuantReal;
-#define QuantDouble     double
+typedef pxt::time_duration  QuantDuration;
+typedef pxt::ptime          QuantTime;
+typedef int                 QuantInt;
+typedef unsigned int        QuantUInt;            // which ever is fastest of unsigned and regular
+typedef float               QuantFloat;
+typedef double              QuantReal;
+typedef double              QuantDouble;
+
+typedef double              QuantTypeSized;
+
+union QuantTypesUnion {
+    QuantTime   time;
+    QuantReal   real;
+    QuantUInt   uint;
+};
 
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 using namespace std;
@@ -173,8 +179,8 @@ inline QuantReal Mantissation::demantise( QuantReal value ) {
 class QuantExecutionContext;
 class QuantKeeperJar;
 class QuantBufferJar;
-class QuantFeed;
-class QuantPeriodization;
+class QuantFeedAbstract;
+class QuantPeriodizationAbstract;
 class QuantBufferSynchronizedHeap;
 class QuantBufferAbstract;
 
@@ -184,8 +190,8 @@ class QuantActiveContainersSetupSingleton {
     QuantExecutionContext       *run_context = nullptr;
     QuantKeeperJar              *active_jar = nullptr;
     QuantBufferJar              *active_buffer_jar = nullptr;
-    QuantFeed                   *active_feed = nullptr;
-    QuantPeriodization          *active_periodization = nullptr;
+    QuantFeedAbstract                   *active_feed = nullptr;
+    QuantPeriodizationAbstract          *active_periodization = nullptr;
     QuantBufferSynchronizedHeap *active_buffer_heap = nullptr;
     HashTree                    *active_conf = nullptr;
 };
@@ -207,11 +213,11 @@ class QuantKeeperJar {
 
     QuantExecutionContext           *run_context = nullptr;
     HashTree                        *conf = nullptr;
-    vector<QuantFeed *>             feeds;
-    vector<QuantPeriodization *>    periodizations;
+    vector<QuantFeedAbstract *>             feeds;
+    vector<QuantPeriodizationAbstract *>    periodizations;
 
-    void add ( QuantFeed *feed );
-    void add ( QuantPeriodization *periodization );
+    void add ( QuantFeedAbstract *feed );
+    void add ( QuantPeriodizationAbstract *periodization );
 };
 
 #endif
@@ -231,13 +237,13 @@ QuantKeeperJar::QuantKeeperJar ( HashTree &conf )
 QuantKeeperJar::~QuantKeeperJar () {
 }
 
-void QuantKeeperJar::add ( QuantFeed *feed )
+void QuantKeeperJar::add ( QuantFeedAbstract *feed )
 {
     feeds.push_back( feed );
     //run_context->add( feed );
 }
 
-void QuantKeeperJar::add ( QuantPeriodization *periodization )
+void QuantKeeperJar::add ( QuantPeriodizationAbstract *periodization )
 {
     periodizations.push_back( periodization );
     //run_context->add( periodization );

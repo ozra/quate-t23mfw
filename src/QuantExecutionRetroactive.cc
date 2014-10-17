@@ -24,15 +24,15 @@ class QuantExecutionRetroactive : public QuantExecutionContext {
     ~QuantExecutionRetroactive ();
 
     void add ( QuantStudyContextAbstract *study );
-    void add ( QuantFeed *feed );
-    void add ( QuantPeriodization *periodization);
+    void add ( QuantFeedAbstract *feed );
+    void add ( QuantPeriodizationAbstract *periodization);
 
     int run ( void );
 
   private:
     vector<QuantStudyContextAbstract *>     studies;
-    vector<QuantFeed *>             feeds;
-    vector<QuantPeriodization *>    periodizations;
+    vector<QuantFeedAbstract *>             feeds;
+    vector<QuantPeriodizationAbstract *>            periodizations;
 
     //Str                         symbol;
     retro_mode                  mode;
@@ -53,26 +53,28 @@ QuantExecutionRetroactive::QuantExecutionRetroactive (
 //: study ( study )
 //, symbol ( symbol )
 :
-    QuantExecutionContext ( start_date, end_date, buffers_output_enabled, is_optimization ),
-    mode ( BACKTEST )
+    QuantExecutionContext {
+        start_date,
+        end_date,
+        buffers_output_enabled,
+        is_optimization
+    },
+    mode { BACKTEST }
 {}
 
 QuantExecutionRetroactive::~QuantExecutionRetroactive ()
 {}
 
-void QuantExecutionRetroactive::add ( QuantStudyContextAbstract *study )
-{
+void QuantExecutionRetroactive::add ( QuantStudyContextAbstract *study ) {
     studies.push_back ( study );
 }
 
-void QuantExecutionRetroactive::add ( QuantFeed *feed )
-{
+void QuantExecutionRetroactive::add ( QuantFeedAbstract *feed ) {
     feed->setDateRange( start_date, end_date );
     feeds.push_back( feed );
 }
 
-void QuantExecutionRetroactive::add ( QuantPeriodization *periodization)
-{
+void QuantExecutionRetroactive::add ( QuantPeriodizationAbstract *periodization) {
     periodization->setDateRange( start_date, end_date );
     periodizations.push_back( periodization );
 }
@@ -80,7 +82,7 @@ void QuantExecutionRetroactive::add ( QuantPeriodization *periodization)
 int QuantExecutionRetroactive::run ( void ) {
     cerr << "RetroPracdelic::run - init\n";
 
-    vector<QuantFeed *> study_feeds;  // so that we can remove feeds as they reach their last values - might change the implementation to check them every loop - will only affect computations in the very last minute of trading data...  - 2014-09-11/ORC(20:51)
+    vector<QuantFeedAbstract *> study_feeds;  // so that we can remove feeds as they reach their last values - might change the implementation to check them every loop - will only affect computations in the very last minute of trading data...  - 2014-09-11/ORC(20:51)
 
     for ( auto study : studies ) {
         study->prepareRun();
@@ -108,12 +110,14 @@ int QuantExecutionRetroactive::run ( void ) {
         f->readNext();               // This will cause loads for each feed, unfortunately waiting sequentially for each before calling fs for the next..     - 2014-09-11/ORC(20:54)
     }
 
+    cerr << "Feed count is " << study_feeds.size() << "\n";
+
     //if (state == HISTORICAL )     // There's ALWAYS historical data reading at first, nothing else makes sense really (the pre-load may be short, but will always be there) -  - 2014-09-11/ORC(20:56)
 
     //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     // Historical / backtest event loop  - 2014-09-11/ORC(21:03)
-    QuantFeed *nearest_feed = nullptr;
+    QuantFeedAbstract *nearest_feed = nullptr;
     QuantTime lowest_time;
     //int ret;
     bool b_ret;
@@ -128,8 +132,8 @@ int QuantExecutionRetroactive::run ( void ) {
         for ( auto f : study_feeds ) {
             if ( ! f ) continue;
 
-            if ( f->ticks[0].time < lowest_time || lowest_time == pxt::not_a_date_time ) {
-                lowest_time = f->ticks[0].time;
+            if ( f->ticks().time < lowest_time || lowest_time == pxt::not_a_date_time ) {
+                lowest_time = f->ticks().time;
                 nearest_feed = f;
             }
         }
@@ -141,6 +145,7 @@ int QuantExecutionRetroactive::run ( void ) {
 
         if ( nearest_feed->ticks[0].time > end_date ) {
             cerr << "Past end date of backtesting date range - quits." << "\n";
+            cerr << (nearest_feed->ticks().time) << " vs " << (nearest_feed->ticks[0].time) << " vs " << end_date << "\n";
             break;
         }
 

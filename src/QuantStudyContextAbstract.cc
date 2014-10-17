@@ -10,8 +10,6 @@
 #include "QuantExecutionContext.hh"
 
 
-constexpr int MAX_PLOTS = 1000;
-
 enum enum_plot_type {
     // 1 value
     LINE = 0,
@@ -19,6 +17,7 @@ enum enum_plot_type {
     DIAMOND,
     SQUARE,
     CROSS,
+    PLUS,
     DASH,
 
     // 2 values
@@ -32,7 +31,8 @@ enum enum_plot_type {
 };
 
 enum enum_line_style {
-    SOLID = 0,
+    NONE = 0,
+    SOLID,
     DASHED,
     DOTTED,
     DOTDASH
@@ -79,8 +79,8 @@ class QuantStudyContextAbstract {
     virtual void prepareRun () = 0;
     //int serialize ();
     void setRunContext ( QuantExecutionContext *p_run_context );
-    void add ( QuantFeed *feed );
-    void add ( QuantPeriodization *periodization );
+    void add ( QuantFeedAbstract *feed );
+    void add ( QuantPeriodizationAbstract *periodization );
 
     bool isBuffersOutputEnabled ();
     bool isOptimization ();
@@ -119,13 +119,13 @@ bool QuantStudyContextAbstract::isOptimization () {
 }
 
 //auto QuantStudyContextAbstract::add ( QuantFeed *feed ) -> QuantStudyContextAbstract &
-void QuantStudyContextAbstract::add ( QuantFeed *feed ) {
+void QuantStudyContextAbstract::add ( QuantFeedAbstract *feed ) {
     the_jar.add( feed );
     //return *this;
 }
 
 //auto QuantStudyContextAbstract::add ( QuantPeriodization *periodization) -> QuantStudyContextAbstract &
-void QuantStudyContextAbstract::add ( QuantPeriodization *periodization) {
+void QuantStudyContextAbstract::add ( QuantPeriodizationAbstract *periodization) {
     the_jar.add( periodization );
     //return *this;
 }

@@ -11,71 +11,93 @@
 template <typename T>
 class ReversedCircularStructBuffer {
   public:
-    ReversedCircularStructBuffer ( int size );
-    ~ReversedCircularStructBuffer ();
+    ReversedCircularStructBuffer ( int psize )
+    :
+        capacity { psize },
+        buffer { new T[psize] },
+        head_ptr { buffer - 1 }      // We increase it by one in first "advance" before reading / writing
+    {}
 
-    T& operator[]( int backwards_index );
-    T& advance ();    // return reference to [0] from here...
-    void reset ();
+    ~ReversedCircularStructBuffer () {
+        delete[] buffer;
+    }
+
+
+    inline operator T& () {
+        return *head_ptr;
+    }
+
+    inline T& operator () () {
+        return *head_ptr;
+    }
+
+
+    inline T& operator[]( int backwards_index ) const {
+        #if IS_DEBUG
+        if ( backwards_index > size - 1 ) {
+            throw _bad_quantbuffer_use_; // *TODO*
+        }
+        #endif
+
+        int ix = pos - backwards_index;
+
+        if ( ix >= 0 ) {
+            return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+        } else {
+            //ix += capacity;
+            return buffer[ix + capacity];
+        }
+    }
+
+    inline T& operator[]( int backwards_index ) {
+        #if IS_DEBUG
+        if ( backwards_index > size - 1 ) {
+            throw _bad_quantbuffer_use_; // *TODO*
+        }
+        #endif
+
+        int ix = pos - backwards_index;
+
+        if ( ix >= 0 ) {
+            return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+        } else {
+            //ix += capacity;
+            return buffer[ix + capacity];
+        }
+        //if ( ix < 0) {
+        //    ix += capacity;
+        //}
+        //return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+    }
+
+    inline T& advance () {    // return reference to [0] from here...
+        ++head_ptr;
+        if ( ++pos >= capacity ) {
+            pos = 0;
+            head_ptr = buffer;
+        }
+
+        if ( size < capacity ) {
+            ++size;
+        }
+
+        return *head_ptr;
+    }
+
+    inline void reset () {
+        pos = 0;
+        size = 0;
+    }
+
 
   //private:
     int capacity;
     int size = 0;
-    int pos = -1;
 
   private:
+    int pos = -1;
     T *buffer;
+    T *head_ptr;
 };
-
-
-template <typename T>
-ReversedCircularStructBuffer<T>::ReversedCircularStructBuffer ( int psize )
-: capacity( psize ),
-  buffer( new T[psize] )
-{}
-
-template <typename T>
-ReversedCircularStructBuffer<T>::~ReversedCircularStructBuffer ()
-{
-    delete[] buffer;
-}
-
-template <typename T>
-T& ReversedCircularStructBuffer<T>::operator[](int backwards_index)
-{
-    if ( backwards_index > size - 1 ) {
-        throw 4747; // *TODO*
-    }
-
-    int ix = pos - backwards_index;
-
-    if ( ix < 0) {
-        ix += capacity;
-    }
-
-    return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
-}
-
-template <typename T>
-T& ReversedCircularStructBuffer<T>::advance ()
-{
-    if ( ++pos >= capacity ) {
-        pos = 0;
-    }
-
-    if ( size < capacity ) {
-        ++size;
-    }
-
-    return buffer[pos];
-
-}
-
-template <typename T>
-void ReversedCircularStructBuffer<T>::reset ()
-{
-    pos = 0;
-    size = 0;
-}
 
 #endif

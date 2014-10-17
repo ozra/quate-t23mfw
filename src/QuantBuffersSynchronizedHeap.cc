@@ -8,7 +8,7 @@
 
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedAbstractBuffer.hh"
+#include "QuantBuffersSynchronizedBufferAbstract.hh"
 
 class QuantBufferSynchronizedHeap {
   public:
@@ -23,19 +23,16 @@ class QuantBufferSynchronizedHeap {
     int     allocate();     // 0 = ok, else error code
     void    advance();
 
-    #ifdef NDEBUG
+    #ifdef IS_DEBUG
     bool                                is_cut_in_stone = false;
     #endif
 
   private:
     int                                 default_buf_size;
-    byte                                *heap;              // TODO(ORC) make sure we're on even 8byte...
+    QuantTypeSized                      *heap;
     byte                                *heap_end_boundary;
     int                                 total_byte_size = 0;
     int                                 biggest_size = 0;
-
-    //vector<QuantBuffer<QuantReal> *>    real_buffers;
-    //vector<QuantBuffer<QuantTime> *>    time_buffers;
     QuantBufferJar                      buffer_jar;
 
 };
@@ -45,48 +42,50 @@ class QuantBufferSynchronizedHeap {
 QuantBufferSynchronizedHeap::QuantBufferSynchronizedHeap ( int default_buf_size )
 :
     default_buf_size  ( default_buf_size )
-{}
+{
+    cerr << "\n\n >> QuantBufferSynchronizedHeap::QuantBufferSynchronizedHeap << - - CONSTRUCTOR! - -" << "\n\n";
+}
 
 QuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap ()
 {
-    cerr << "QuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap - - DESTRUCTOR - -" << "\n";
-    delete heap;
+    cerr << "\n\nQuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap - - DESTRUCTOR - -" << "\n";
+    cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
 
     /*
-     * Deleting the buffers is the users responsibility (they're most likely
-     * created at context construction time, and therefor automatically
-     * destroyed...
-    cerr << "Will delete " << buffers.size() << " quant buffers" << "\n";
+    cerr << "crash heh? " << *(heap_end_boundary - 8);
+    cerr << "crash heh? " << *(heap_end_boundary);
+    cerr << "crash heh? " << *(heap_end_boundary + 8);
+    cerr << "crash heh? " << *(heap_end_boundary + 16);
+    cerr << "crash heh? " << *(heap - 8);
+    //cerr << "crash heh? " << *(heap - 234234234);
+    */
 
-    for ( auto buf : buffers ) {
-        delete buf;
-    }
+    delete [] heap;
 
-     */
+    cerr << "/ QuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap - - DESTRUCTOR - -" << "\n\n";
 }
 
 //auto QuantBufferSynchronizedHeap::add( AbstractQuantBuffer &buf )
 //  -> QuantBufferSynchronizedHeap&
 void QuantBufferSynchronizedHeap::add ( QuantBufferAbstract &buf )
 {
+    // *TODO* THESE ADD METHODS SHOULD BE OBSOLETE!
+
     buf.owning_heap = this;
 
     if ( buf.capacity == 0 ) {
         buf.capacity = default_buf_size;
     }
-
-    //buffers.push_back( &buf );    *TODO* is auto
-    //return *this;
 }
 
 //auto QuantBufferSynchronizedHeap::add( AbstractQuantBuffer &buf, int size_capacity )
 //    -> QuantBufferSynchronizedHeap&
 void QuantBufferSynchronizedHeap::add ( QuantBufferAbstract &buf, int size_capacity )
 {
+    // *TODO* THESE ADD METHODS SHOULD BE OBSOLETE!
+
     buf.owning_heap = this;
     buf.capacity = size_capacity;
-    //buffers.push_back( &buf );    // *TOOD* auto!
-    //return *this;
 }
 
 int QuantBufferSynchronizedHeap::allocate ()
@@ -102,39 +101,44 @@ int QuantBufferSynchronizedHeap::allocate ()
 
         buf_byte_size = buf->getSizeInBytes();
 
-        cerr << "Sums buffer of size " << buf_byte_size << "type-size is " << buf->getDataTypeSize() << "\n";
-        biggest_size = MAX(biggest_size, buf_byte_size);
-        cerr << "Biggest size is " << biggest_size << "\n";
+        cerr << "Sums buffer of size " << buf_byte_size << ", type-size is " << buf->getDataTypeSize() << "\n";
+        biggest_size = MAX( biggest_size, buf_byte_size );
         total_byte_size += buf_byte_size;
     }
 
-    total_byte_size += biggest_size;
+    total_byte_size += biggest_size;    // Add the buffer-rotation space with the size of the biggest buffer we have in the heap
 
+    cerr << "Biggest size is " << biggest_size << "\n";
     cerr << "QuantBufferSynchronizedHeap::allocate() total size to alloc: " << total_byte_size <<"\n";
 
-    heap = new byte[total_byte_size];
+    heap = new QuantTypeSized[ total_byte_size / sizeof(QuantTypeSized) ];
+
     if ( !heap ) {
+        cerr << "\n\n\nCouldn't allocate memmory for Synchronized Heap!\n\n\n";
         return 1;
     }
 
-    heap_end_boundary = heap + total_byte_size;
-    byte *ptr = heap;
+    heap_end_boundary = reinterpret_cast<byte *>( heap + ( total_byte_size / sizeof(QuantTypeSized) ) );
+    QuantTypeSized *ptr = heap;
 
-    cerr << "ptr (heap copied ptr) is " << (void *)ptr << "end_ptr is: " << (void *)heap_end_boundary << "\n";
+    cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
 
     for ( auto buf : buffer_jar.buffers ) {
-        buf->tail_ptr = ptr;
-        ptr += buf->getSizeInBytes();  //capacity * sizeof(QuantTime);
-        // Set head_ptr to point to the [0] element - this may be the last
-        // element in the buffer, or 2nd last - if [-1] is allowed as last
-        // element indexer (used for [0] = last_closed, [-1] = open_non_complete)
-        buf->head_ptr = (ptr - (buf->getDataTypeSize() * (1 - buf->getZeroOffset()) ) );
+        buf->relocate_heap_ptr( reinterpret_cast<byte *>( ptr ) );   // 141015/ORC
+        ptr += buf->capacity;
+        //ptr += buf->getSizeInBytes();  //capacity * sizeof(QuantTime);
 
+        #ifdef IS_DEBUG
+        buf->is_cut_in_stone = true;
+        #endif
+
+        #ifdef IS_DEBUG
         cerr << "Back step from end is: " << (1 - buf->getZeroOffset()) << " zeroOffset itself is " << buf->getZeroOffset() << "\n";
-        cerr << "Ptrs are:" << (void *)buf->head_ptr << ", " << (void *)buf->tail_ptr << "\n";
+        cerr << "Buf tail ptr is:" << (void *)buf->tail_ptr << "\n"; // (void *)buf->head_ptr << ", "
+        #endif
     }
 
-    #ifdef NDEBUG
+    #ifdef IS_DEBUG
     is_cut_in_stone = true;
     #endif
 
@@ -144,36 +148,40 @@ int QuantBufferSynchronizedHeap::allocate ()
 
 }
 
-void QuantBufferSynchronizedHeap::advance ()
-{
-    bool time_for_move = false;
-    int typesize;
+// 4715471517 - 1754747
+
+void QuantBufferSynchronizedHeap::advance () {
+    //bool time_for_move = false;
+    QuantBufferAbstract *buffer_to_move = nullptr;
+    //int typesize;
 
     for ( auto buf : buffer_jar.buffers ) {
-        typesize = buf->getDataTypeSize();
+        //typesize = buf->getDataTypeSize();
         //cerr << "QuantBufferSynchronizedHeap::advance - ptrs BEFORE are: " << (void *)buf->head_ptr << ", " << (void *)buf->tail_ptr << "\n";
         //cerr << "Sizeof _ptr_ is: " << sizeof(buf->tail_ptr) << "\n";
         //cerr << "Sizeof ptrtype is: " << typesize << "\n";
 
-        buf->tail_ptr += typesize;
-        buf->head_ptr += typesize;
-        buf->size = MAX ( buf->capacity, ++buf->size );
+        buf->tail_ptr += sizeof(QuantTypeSized);
+        buf->head_ptr += sizeof(QuantTypeSized);
+        buf->frontier_ptr += sizeof(QuantTypeSized);
 
-        //cerr << "QuantBufferSynchronizedHeap::advance - ptrs are: " << (void *)buf->head_ptr << ", " << (void *)buf->tail_ptr << "\n";
-
-        if ( (buf->head_ptr + typesize) >= heap_end_boundary ) {
-            time_for_move = true;
+        if ( buf->size < buf->capacity ) {
+            ++buf->size;
+        }
+        if ( UNLIKELY( buf->frontier_ptr == heap_end_boundary ) ) {
+            buffer_to_move = buf;
         }
     }
 
-    if ( time_for_move ) {
-        //cerr << "QuantBufferSynchronizedHeap::advance() - It's time to move a buf around\n";
+    if ( LIKELY( ! buffer_to_move ) ) {   // False is the absolutely most likely branch
+        return;
 
-        /*
-         *
-         * *9* *TODO*  move the last bufs mem area to beginning of heap
-         *
-        */
+    } else {
+        cerr << "\n\n\nQuantBufferSynchronizedHeap::advance() - It's time to move a buf around!!!" << "\n\n\n";
+
+        memcpy( heap, (buffer_to_move->tail_ptr - sizeof(QuantTypeSized)), buffer_to_move->getSizeInBytes() );
+        buffer_to_move->relocate_heap_ptr( reinterpret_cast<byte *>( heap ) );
+        return;
     }
 
 }
