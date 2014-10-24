@@ -5,7 +5,13 @@
 * Licence:  MIT (Expat) - http://opensource.org/licenses/mit-license.html
 **/
 
-#include "QuantSuit.hh"
+#include "QuantBase.hh"
+#include "QuantBuffersBase.hh"
+#include "QuantBuffersSynchronizedHeap.hh"
+#include "QuantBuffersSynchronizedBufferAbstract.hh"
+#include "QuantFeedAbstract.hh"
+#include "QuantPeriodizationAbstract.hh"
+#include "QuantStudyContextBase.hh"
 #include "QuantExecutionContext.hh"
 
 enum retro_mode {
@@ -25,7 +31,7 @@ class QuantExecutionRetroactive : public QuantExecutionContext {
 
     void add ( QuantStudyContextAbstract *study );
     void add ( QuantFeedAbstract *feed );
-    void add ( QuantPeriodizationAbstract *periodization);
+    void add ( QuantPeriodizationAbstract *periodization );
 
     int run ( void );
 
@@ -70,12 +76,12 @@ void QuantExecutionRetroactive::add ( QuantStudyContextAbstract *study ) {
 }
 
 void QuantExecutionRetroactive::add ( QuantFeedAbstract *feed ) {
-    feed->setDateRange( start_date, end_date );
+    //feed->setDateRange( start_date, end_date );
     feeds.push_back( feed );
 }
 
 void QuantExecutionRetroactive::add ( QuantPeriodizationAbstract *periodization) {
-    periodization->setDateRange( start_date, end_date );
+    //periodization->setDateRange( start_date, end_date );
     periodizations.push_back( periodization );
 }
 
@@ -89,19 +95,11 @@ int QuantExecutionRetroactive::run ( void ) {
         study->init();
 
         for ( auto per : study->the_jar.periodizations ) {
-            /*
-            for ( auto buf : per->buffers ) {
-                per->buffer_heap.add( buf );
-            }
-            */
-
             per->buffer_heap.allocate();
         }
 
         study_feeds.insert( study_feeds.end(), study->the_jar.feeds.begin(), study->the_jar.feeds.end() );
     }
-
-    //auto study_feeds( feeds );  // so that we can remove feeds as they reach their last values - might change the implementation to check them every loop - will only affect computations in the very last minute of trading data...  - 2014-09-11/ORC(20:51)
 
     // Prime feeds by fetching next available tick in each of them
     for ( auto f : study_feeds ) {
@@ -119,10 +117,8 @@ int QuantExecutionRetroactive::run ( void ) {
     // Historical / backtest event loop  - 2014-09-11/ORC(21:03)
     QuantFeedAbstract *nearest_feed = nullptr;
     QuantTime lowest_time;
-    //int ret;
-    bool b_ret;
 
-    for (;;) {
+    while ( true ) {
         lowest_time = pxt::max_date_time;
         nearest_feed = nullptr;
 
@@ -143,18 +139,22 @@ int QuantExecutionRetroactive::run ( void ) {
             break;
         }
 
-        if ( nearest_feed->ticks[0].time > end_date ) {
+        if ( lowest_time > end_date ) {
             cerr << "Past end date of backtesting date range - quits." << "\n";
-            cerr << (nearest_feed->ticks().time) << " vs " << (nearest_feed->ticks[0].time) << " vs " << end_date << "\n";
+            cerr << (nearest_feed->ticks().time) << " vs " << (nearest_feed->ticks().time) << " vs " << end_date << "\n";
             break;
+
         }
 
         //cerr << "Got it. emit it\n";
-        nearest_feed->emit();            // Let it kick of its' chain of events
+        if ( lowest_time >= start_date ) {   // *TODO* change to pre-main-loop "spooling"
+            nearest_feed->emit();            // Let it kick of its' chain of events
+        }
         //cerr << "read next value before next selection iteration\n";
-        b_ret = nearest_feed->readNext();  // Update to next value
+        if ( nearest_feed->readNext() == true ) {         // More _historical_ data in the feed?
+            continue;
 
-        if ( b_ret == false ) {         // No more _historical_ data in the feed
+        } else {
             cerr << "retval was false, no more data\n";
 
             int count = study_feeds.size();

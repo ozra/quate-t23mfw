@@ -43,7 +43,7 @@ class QuantTick {
 
     QuantTick (
         QuantTime,
-        //QuantTickFlags,
+        QuantReal,
         QuantReal,
         QuantReal,
         QuantReal,
@@ -52,7 +52,7 @@ class QuantTick {
     //~QuantTick () {};
 
     inline bool isGhostTick () {
-        return volume == 0;
+        return ask_volume == 0 && bid_volume == 0;  //
     }
 
     //inline bool setGhostTick () {
@@ -60,11 +60,11 @@ class QuantTick {
     //}
 
     QuantTime           time;
-    //QuantTickFlags      flags;
     QuantReal           ask;
     QuantReal           bid;
     QuantReal           last_price;     // In many cases (most except XBT brokers, which are "true" markets) this is always the same as bid for sell, and ask for buy - an hence - in analysis - always "one of them".
-    QuantReal           volume;
+    QuantReal           ask_volume;
+    QuantReal           bid_volume;
 
   //private:
 };
@@ -72,16 +72,17 @@ class QuantTick {
 
 QuantTick::QuantTick (
     QuantTime       time,
-    //QuantTickFlags  flags,
     QuantReal       ask,
     QuantReal       bid,
     QuantReal       last_price,
-    QuantReal       last_qty
+    QuantReal       ask_volume,
+    QuantReal       bid_volume
 ) :
     time { time },
     ask { ask },
     bid { bid },
     last_price { last_price },
-    volume { volume }
+    ask_volume { ask_volume },
+    bid_volume { bid_volume }
 {}
 

@@ -30,7 +30,7 @@ class QuantBufferSynchronizedHeap {
   private:
     int                                 default_buf_size;
     QuantTypeSized                      *heap;
-    byte                                *heap_end_boundary;
+    QuantTypeSized                      *heap_end_boundary;
     int                                 total_byte_size = 0;
     int                                 biggest_size = 0;
     QuantBufferJar                      buffer_jar;
@@ -50,15 +50,6 @@ QuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap ()
 {
     cerr << "\n\nQuantBufferSynchronizedHeap::~QuantBufferSynchronizedHeap - - DESTRUCTOR - -" << "\n";
     cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
-
-    /*
-    cerr << "crash heh? " << *(heap_end_boundary - 8);
-    cerr << "crash heh? " << *(heap_end_boundary);
-    cerr << "crash heh? " << *(heap_end_boundary + 8);
-    cerr << "crash heh? " << *(heap_end_boundary + 16);
-    cerr << "crash heh? " << *(heap - 8);
-    //cerr << "crash heh? " << *(heap - 234234234);
-    */
 
     delete [] heap;
 
@@ -99,9 +90,9 @@ int QuantBufferSynchronizedHeap::allocate ()
             buf->capacity = default_buf_size;
         }
 
-        buf_byte_size = buf->getSizeInBytes();
-
-        cerr << "Sums buffer of size " << buf_byte_size << ", type-size is " << buf->getDataTypeSize() << "\n";
+        //cerr << "Sums buffer of size " << buf_byte_size << ", type-size is " << buf->getDataTypeSize() << "\n";
+        // *TODO* since the arbitrary sizes thing is dumped - we would be better of just counting up buffer-SIZE (as in datatype counted, not bytes) - 2014-10-23/ORC
+        buf_byte_size = buf->capacity * sizeof(QuantTypeSized);
         biggest_size = MAX( biggest_size, buf_byte_size );
         total_byte_size += buf_byte_size;
     }
@@ -118,13 +109,14 @@ int QuantBufferSynchronizedHeap::allocate ()
         return 1;
     }
 
-    heap_end_boundary = reinterpret_cast<byte *>( heap + ( total_byte_size / sizeof(QuantTypeSized) ) );
+    heap_end_boundary = reinterpret_cast<QuantTypeSized *>( heap + ( total_byte_size / sizeof(QuantTypeSized) ) );
     QuantTypeSized *ptr = heap;
 
     cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
 
     for ( auto buf : buffer_jar.buffers ) {
-        buf->relocate_heap_ptr( reinterpret_cast<byte *>( ptr ) );   // 141015/ORC
+        //buf->relocate_heap_ptr( reinterpret_cast<QuantTypeSized *>( ptr ) );   // 141015/ORC
+        buf->relocate_heap_ptr( ptr );   // 141015/ORC
         ptr += buf->capacity;
         //ptr += buf->getSizeInBytes();  //capacity * sizeof(QuantTime);
 
@@ -133,7 +125,7 @@ int QuantBufferSynchronizedHeap::allocate ()
         #endif
 
         #ifdef IS_DEBUG
-        cerr << "Back step from end is: " << (1 - buf->getZeroOffset()) << " zeroOffset itself is " << buf->getZeroOffset() << "\n";
+        //cerr << "Back step from end is: " << (1 - buf->getZeroOffset()) << " zeroOffset itself is " << buf->getZeroOffset() << "\n";
         cerr << "Buf tail ptr is:" << (void *)buf->tail_ptr << "\n"; // (void *)buf->head_ptr << ", "
         #endif
     }
@@ -161,14 +153,22 @@ void QuantBufferSynchronizedHeap::advance () {
         //cerr << "Sizeof _ptr_ is: " << sizeof(buf->tail_ptr) << "\n";
         //cerr << "Sizeof ptrtype is: " << typesize << "\n";
 
-        buf->tail_ptr += sizeof(QuantTypeSized);
-        buf->head_ptr += sizeof(QuantTypeSized);
-        buf->frontier_ptr += sizeof(QuantTypeSized);
+        ++(buf->tail_ptr);
+        ++(buf->head_ptr);
+        //buf->tail_ptr += sizeof(QuantTypeSized);
+        //buf->head_ptr += sizeof(QuantTypeSized);
+        //buf->frontier_ptr += sizeof(QuantTypeSized);
+
+        #ifdef IS_DEBUG
+        // *TODO* cannot be made until we know we're not at heap_end_boundary.. -   *(buf->head_ptr) = 0;      // Zero it out to make sure it's not missed being set - 0 being the safest choice for determinism - since the cell can contain a number of datatypes of the same size (ptime, double, whatever) but the most likely contents are "numberish".
+        buf->datum_value_has_been_set = false;
+        #endif
+
 
         if ( buf->size < buf->capacity ) {
             ++buf->size;
         }
-        if ( UNLIKELY( buf->frontier_ptr == heap_end_boundary ) ) {
+        if ( UNLIKELY( buf->head_ptr == heap_end_boundary ) ) {
             buffer_to_move = buf;
         }
     }
@@ -179,8 +179,8 @@ void QuantBufferSynchronizedHeap::advance () {
     } else {
         cerr << "\n\n\nQuantBufferSynchronizedHeap::advance() - It's time to move a buf around!!!" << "\n\n\n";
 
-        memcpy( heap, (buffer_to_move->tail_ptr - sizeof(QuantTypeSized)), buffer_to_move->getSizeInBytes() );
-        buffer_to_move->relocate_heap_ptr( reinterpret_cast<byte *>( heap ) );
+        memcpy( heap, (buffer_to_move->tail_ptr - 1), buffer_to_move->capacity * sizeof(QuantTypeSized) );
+        buffer_to_move->relocate_heap_ptr( heap );
         return;
     }
 

@@ -30,31 +30,81 @@ class Ema : public QTA::ObjectAbstract
     ~Ema ();
     //inline void init ();
 
-    inline void operator() ( QuantReal value ) {
+
+
+    inline bool is_primed () final {
+        return ( ++prime_count > prime_minimum );
+    }
+
+    //inline void prime ( QuantReal value ) final {
+    //    prevMA = value;
+    //}
+
+
+
+    inline void operator<< ( QuantReal value ) {
+        calcValue( value );
+    }
+
+    inline void operator|= ( QuantReal value ) {
         handleValue( value );
     }
+    //inline void operator() ( QuantReal value ) {
+    //    handleValue( value );
+    //}
+    //
     /*
-    inline void operator() ( QuantBuffer<QuantReal,-1> &value ) {
+    inline void operator() ( QuantBuffer<QuantReal> &value ) {
         handleValue( value );
     }
     */
     inline QuantReal operator[] ( int reverse_index ) const {
-        return result_ema[ reverse_index ];
+        return result[ reverse_index ];
     }
     inline QuantReal operator[] ( int reverse_index ) {
-        return result_ema[ reverse_index ];
+        return result[ reverse_index ];
     }
     inline operator QuantReal() const {
-        //return *((QuantReal *)result_ema.head_ptr);
-        return result_ema;
+        //return *((QuantReal *)result.head_ptr);
+        return result;
     };
 
+    // *BUBBLARE* *TODO*
+    inline void produce () {
+        result |= prevMA;
+    }
+
+    // *BUBBLARE* *TODO*
+    inline void commit () {
+        result |= prevMA;
+    }
+
   private:
+    inline void calcValue ( QuantReal in_value ) {
+
+
+        // *TODO*  replace with the is_primed stuff..
+
+
+        if ( dynamically_inited ) {
+            prevMA = ((in_value - prevMA) * ema_k) + prevMA;
+        } else {
+            prevMA = in_value;
+            dynamically_inited = true;
+        }
+
+    }
+
+
+
+    //    *TODO*  - all buffers need to implement "is_primed()"  !!
+
+
     inline void handleValue ( QuantReal in_value ) {
         /*
          *   *TODO* in the verify_buffers() function instead - aight!
          *
-        if ( result_ema.size < stable_sample_count ) {
+        if ( result.size < stable_sample_count ) {
             // *TODO*
             is_primed = false;
             //per.is_primed = false;    // *TODO*
@@ -62,15 +112,9 @@ class Ema : public QTA::ObjectAbstract
          *
          */
 
-        if ( dynamically_inited == false ) {    // initial value
-            result_ema( prevMA = in_value ); //src_buf[0];
-            dynamically_inited = true;
-            return;
-        }
-
-        prevMA = ((in_value - prevMA) * ema_k) + prevMA;
-        result_ema( prevMA );
-
+        calcValue( in_value );
+        commit();
+        //result |= prevMA;
 
         /*
         double tempReal, prevMA;
@@ -119,17 +163,18 @@ class Ema : public QTA::ObjectAbstract
     //virtual void prime ( QuantReal value );    // prime the lookback with reasonable approximations, default values
 
     int                 len;
-    QuantReal           ema_k;
     int                 lookback;
-    int                 stable_sample_count;
+    QuantReal           ema_k;
+
     bool                dynamically_inited = false;
-    bool                is_primed = false;
+    int                 prime_count = 0;
+    int                 prime_minimum = 0;
+
     QuantReal           prevMA = 0;
 
     QuantPeriodizationAbstract  &per;
 
-    //QuantBuffer         cache_buf;
-    QuantBuffer<QuantReal,0>         result_ema;
+    QuantBuffer<QuantReal>      result;
 
 };
 
@@ -146,11 +191,11 @@ Ema::Ema ( int length, int max_lookback, QuantPeriodizationAbstract &per )
     len( length ),
     ema_k( 2.0 / ( length + 1.0 ) ),
     lookback( MAX( length, max_lookback ) ),
-    stable_sample_count( len * 2 ),
+    prime_minimum { len * 4 },   //MAX( len * 4, lookback ) }
     per( per ),
-    result_ema { lookback }
+    result { lookback }
 {
-    //per.add( result_ema, lookback );
+    //per.add( result, lookback );
 }
 
 Ema::~Ema ()

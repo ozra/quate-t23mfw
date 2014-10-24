@@ -10,7 +10,7 @@
 #include "QuantBuffersBase.hh"
 //#include "QuantBuffersSynchronizedHeap.hh"
 
-
+//template <typename T_A>
 class QuantBufferAbstract {
   public:
     //AbstractQuantBuffer () {};
@@ -35,7 +35,7 @@ class QuantBufferAbstract {
 
 
     //auto needs( int lookback_length ) -> AbstractQuantBuffer &;
-    void needs( int lookback_length );
+    void needs ( int lookback_length );
 
 /*
     virtual operator T() = 0;
@@ -43,10 +43,17 @@ class QuantBufferAbstract {
     virtual T& operator[] ( int backwards_index ) = 0;
 */
 
-    virtual void relocate_heap_ptr( byte *ptr ) = 0;
-    virtual int getSizeInBytes() = 0;
-    virtual int getDataTypeSize() = 0;
-    virtual int getZeroOffset() = 0;
+    inline void relocate_heap_ptr ( QuantTypeSized * ptr ) {
+        // Set head_ptr to point to the [0] element - this may be the last
+        // element in the buffer, or 2nd last - if [-1] is allowed as last
+        // element indexer (used for [0] = last_closed, [-1] = open_non_complete)
+        tail_ptr = ptr;
+        head_ptr = ptr + capacity - 1;
+    }
+
+    //virtual int getSizeInBytes () = 0;
+    //virtual int getDataTypeSize () = 0;
+    //virtual int getZeroOffset () = 0;
 
     QuantBufferSynchronizedHeap *owning_heap;   // *TODO* *DUMP*?? Set from outside by **Heap.. More of a dev / debug safety measure than necessity - 2014-09-12/ORC(17:44)
 
@@ -54,14 +61,14 @@ class QuantBufferAbstract {
 
     #ifdef IS_DEBUG
     bool                                is_cut_in_stone = false;
+    bool                                datum_value_has_been_set = false;
     #endif
 
     int             capacity = 0;
     int             size = 0;
 
-    byte            *tail_ptr; // = nullptr;
-    byte            *head_ptr; // = nullptr;
-    byte            *frontier_ptr; // = nullptr;
+    QuantTypeSized     *tail_ptr; // = nullptr;
+    QuantTypeSized     *head_ptr; // = nullptr;
 
 };
 
@@ -83,6 +90,3 @@ void QuantBufferAbstract::needs ( int lookback_length )
     capacity = MAX( capacity, lookback_length );
     //return *this;   // for chaining
 }
-
-
-

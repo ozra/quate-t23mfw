@@ -16,6 +16,9 @@ class ObjectAbstract {
     ObjectAbstract () {};
     virtual     ~ObjectAbstract () {};
 
+    virtual bool    verify_integrity ();
+    virtual bool    is_primed ();
+
 };
 
 }
@@ -29,5 +32,13 @@ namespace QTA {
 
 //ObjectAbstract::~ObjectAbstract ()
 //{}
+
+bool ObjectAbstract::verify_integrity () {
+    return true;
+}
+
+bool ObjectAbstract::is_primed () {
+    return true;
+}
 
 }

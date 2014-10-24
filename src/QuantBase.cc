@@ -5,18 +5,6 @@
 * Licence:  MIT (Expat) - http://opensource.org/licenses/mit-license.html
 **/
 
-/* This is a class that is passed to Feed, Periodization, etc. it contains
- * a method for multiplying the security/instruments value increasing the
- * part residing in integral (mantissa) and decreasing the part in decimals,
- * thereby:
- *  - increasing precision in float32 operations.
- *  - revealing problems in threshold logic arising from hard coded value
- *    levels.
- *
- * The factor is therefor preferably randomized for each session, thereby
- * increasing the visibility of non normalized calculations.
- */
-
 
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
@@ -182,6 +170,7 @@ class QuantBufferJar;
 class QuantFeedAbstract;
 class QuantPeriodizationAbstract;
 class QuantBufferSynchronizedHeap;
+//template <typename T_A> class QuantBufferAbstract;
 class QuantBufferAbstract;
 
 
@@ -221,8 +210,7 @@ class QuantKeeperJar {
 };
 
 #endif
-QuantKeeperJar::QuantKeeperJar ()
-{
+QuantKeeperJar::QuantKeeperJar () {
     global_actives.active_jar = this;
 }
 
@@ -237,14 +225,12 @@ QuantKeeperJar::QuantKeeperJar ( HashTree &conf )
 QuantKeeperJar::~QuantKeeperJar () {
 }
 
-void QuantKeeperJar::add ( QuantFeedAbstract *feed )
-{
+void QuantKeeperJar::add ( QuantFeedAbstract *feed ) {
     feeds.push_back( feed );
     //run_context->add( feed );
 }
 
-void QuantKeeperJar::add ( QuantPeriodizationAbstract *periodization )
-{
+void QuantKeeperJar::add ( QuantPeriodizationAbstract *periodization ) {
     periodizations.push_back( periodization );
     //run_context->add( periodization );
 }
@@ -253,8 +239,7 @@ void QuantKeeperJar::add ( QuantPeriodizationAbstract *periodization )
 
 #ifdef INTERFACE
 
-class QuantBufferJar
-{
+class QuantBufferJar {
   public:
     QuantBufferJar ();
     void add ( QuantBufferAbstract * );
@@ -263,8 +248,7 @@ class QuantBufferJar
 
 #endif
 
-QuantBufferJar::QuantBufferJar ()
-{
+QuantBufferJar::QuantBufferJar () {
     cerr << "QuantBufferJar::QuantBufferJar - sets 'global_actives.active_buffer_jar'" << "\n";
     global_actives.active_buffer_jar = this;
 }

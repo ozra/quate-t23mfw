@@ -8,7 +8,9 @@
 
 #include "QuantPeriodizationAbstract.hh"
 #include "QuantBase.hh"
-#include "QuantBuffers.hh"
+#include "QuantBuffersBase.hh"
+#include "QuantBuffersSynchronizedHeap.hh"
+#include "QuantBuffersSynchronizedBufferAbstract.hh"
 #include "QuantFeed.hh"
 
 #include "HardSignal.hh"

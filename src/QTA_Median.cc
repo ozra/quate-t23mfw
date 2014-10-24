@@ -46,7 +46,7 @@ class Median : public QTA::ObjectAbstract {
     QuantFeedAbstract           &feed;
 
     ReversedCircularStructBuffer<QuantReal> median_collection;
-    QuantBuffer<QuantReal,0>                result;
+    QuantBuffer<QuantReal>                result;
 
 };
 

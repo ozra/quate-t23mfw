@@ -16,7 +16,10 @@
 
 #include "QuantBase.hh"
 #include "QuantStudyContextAbstract.hh"
-#include "QuantBuffers.hh"
+#include "QuantBuffersBase.hh"
+#include "QuantBuffersSynchronizedHeap.hh"
+#include "QuantBuffersSynchronizedBufferAbstract.hh"
+#include "QuantBuffersReverseIndexedCircular.hh"
 #include "QuantTick.hh"
 
 #include "QuantSequentialData.hh"
@@ -140,8 +143,8 @@ QuantFeedAbstract::QuantFeedAbstract (
     int lookback,
     QuantKeeperJar *the_jar
 ) :
-    the_jar { the_jar },
     ticks ( lookback + 2 ),     // +1 for current tick, +1 for prev. tick
+    the_jar { the_jar },
     broker_id { broker_id },
     symbol_id { symbol_id },
     lookback { lookback }
@@ -171,7 +174,7 @@ void QuantFeedAbstract::setDateRange (
     next_regulated_tick_time = start_date;
 
     // *TODO* PROPER PLACEMENT!
-    sequential_data_interface->init(symbol_id, 0.00001, start_date, end_date);
+    sequential_data_interface->init( symbol_id, 0.00001, start_date, end_date );
 }
 
 void QuantFeedAbstract::setRegulatedInterval ( double p_regulated_interval )
@@ -257,14 +260,16 @@ bool QuantFeedAbstract::readNext () {
                     tick.ask = prev.ask;
                     tick.bid = prev.bid;
                     tick.last_price = prev.last_price;
-                    tick.volume = 0; // Ghost tick..
+                    tick.ask_volume = 0; // Ghost tick..
+                    tick.bid_volume = 0; // Ghost tick..
                     has_buffered = true;
                     next_regulated_tick_time += regulated_interval;
                 #else
                     buffered_tick = tick;
                     tick = ticks[1];
                     tick.time = next_regulated_tick_time;
-                    tick.volume = 0; // Ghost tick..
+                    tick.ask_volume = 0; // Ghost tick..
+                    tick.bid_volume = 0; // Ghost tick..
                     has_buffered = true;
                     next_regulated_tick_time += regulated_interval;
                 #endif
@@ -276,14 +281,16 @@ bool QuantFeedAbstract::readNext () {
                     tick->ask = prev.ask;
                     tick->bid = prev.bid;
                     tick->last_price = prev.last_price;
-                    tick->volume = 0; // Ghost tick..
+                    tick->ask_volume = 0; // Ghost tick..
+                    tick->bid_volume = 0; // Ghost tick..
                     has_buffered = true;
                     next_regulated_tick_time += regulated_interval;
                 #else
                     buffered_tick = *tick;
                     *tick = ticks[1];
                     tick->time = next_regulated_tick_time;
-                    tick->volume = 0; // Ghost tick..
+                    tick->ask_volume = 0; // Ghost tick..
+                    tick->bid_volume = 0; // Ghost tick..
                     has_buffered = true;
                     next_regulated_tick_time += regulated_interval;
                 #endif
@@ -313,8 +320,6 @@ bool QuantFeedAbstract::readNext () {
             ++ghost_tick_count;
             #endif
 
-            // *TODO* test if making specific field copies (Since not all are
-            // used) is faster - and done in correct sequence of course
             #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
                 #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_2
                     const QuantTick &prev = ticks[1];
@@ -322,11 +327,14 @@ bool QuantFeedAbstract::readNext () {
                     tick.ask = prev.ask;
                     tick.bid = prev.bid;
                     tick.last_price = prev.last_price;
-                    tick.volume = 0; // Ghost tick..
+                    tick.ask_volume = 0; // Ghost tick..
+                    tick.bid_volume = 0; // Ghost tick..
+
                 #else
                     tick = ticks[1];
                     tick.time = next_regulated_tick_time;
-                    tick.volume = 0; // Ghost tick..
+                    tick.ask_volume = 0; // Ghost tick..
+                    tick.bid_volume = 0; // Ghost tick..
                 #endif
             #else
                 #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_2
@@ -334,11 +342,13 @@ bool QuantFeedAbstract::readNext () {
                     tick->ask = ticks[1].ask;
                     tick->bid = ticks[1].bid;
                     tick->last_price = ticks[1].last_price;
-                    tick->volume = 0; // Ghost tick..
+                    tick->ask_volume = 0; // Ghost tick..
+                    tick->bid_volume = 0; // Ghost tick..
                 #else
                     *tick = ticks[1];
                     tick->time = next_regulated_tick_time;
-                    tick->volume = 0; // Ghost tick..
+                    tick->ask_volume = 0; // Ghost tick..
+                    tick->bid_volume = 0; // Ghost tick..
                 #endif
             #endif
 

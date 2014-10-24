@@ -36,7 +36,7 @@ class Highest : public QTA::ObjectAbstract {
 
     ~Highest () {}
 
-    inline void handleValue ( QuantBuffer<QuantReal,-1> & in_buf ) {
+    inline void handleValue ( QuantBuffer<QuantReal> & in_buf ) {
         QuantReal usable_length = length;
 
         //cerr << "length = " << length << ", in_buf.size = " << in_buf.size << ", ";
@@ -47,7 +47,7 @@ class Highest : public QTA::ObjectAbstract {
             cerr << "sets usable length to " << usable_length << ", ";
 
             if ( usable_length < 2 ) {  // +1 for CLOSED bar, +1 for highest_so_far fallen out compare
-                result( 0.0 );
+                result |= 0.0;
                 // *TODO*
                 // owning_jar.is_primed = false;
                 return;
@@ -93,15 +93,12 @@ class Highest : public QTA::ObjectAbstract {
         //cerr << "highest_so_far after " << highest_so_far << ", ";
         //cerr << "\n";
 
-        result( highest_so_far );
+        result |= highest_so_far;
     }
 
-    inline void operator() ( QuantBuffer<QuantReal,-1> &value ) {
-        handleValue( value );
-    }
-
-    void operator() ( QTA::ObjectAbstract &value ) {
-        //handleValue( value[0] ); *TODO* lägg in virtual method i ObjectAbstract
+    inline void operator|= ( QuantBuffer<QuantReal> &in_buf ) {
+    //inline void operator|= ( QuantReal value ) {
+        handleValue( in_buf );
     }
 
     inline QuantReal operator[] ( int reverse_index ) const {
@@ -117,7 +114,7 @@ class Highest : public QTA::ObjectAbstract {
     int lookback;
 
     QuantReal   highest_so_far = std::numeric_limits<QuantReal>::min();
-    QuantBuffer<QuantReal,0>    result;
+    QuantBuffer<QuantReal>    result;
 
 };
 

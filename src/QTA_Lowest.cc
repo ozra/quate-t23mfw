@@ -36,18 +36,18 @@ class Lowest : public QTA::ObjectAbstract {
 
     ~Lowest () {}
 
-    inline void handleValue ( QuantBuffer<QuantReal,-1> & in_buf ) {
+    inline void handleValue ( QuantBuffer<QuantReal> & in_buf ) {
         QuantReal usable_length = length;
 
         //cerr << "length = " << length << ", in_buf.size = " << in_buf.size << ", ";
 
-        if ( in_buf.size - 1 < usable_length ) {
+        if ( in_buf.size <= usable_length ) {
             usable_length = in_buf.size - 1;
 
             cerr << "sets usable length to " << usable_length << ", ";
 
             if ( usable_length < 2 ) {  // +1 for CLOSED bar, +1 for lowest_so_far fallen out compare
-                result( 0.0 );
+                result |= 0.0;
                 // *TODO*
                 // owning_jar.is_primed = false;
                 return;
@@ -93,15 +93,12 @@ class Lowest : public QTA::ObjectAbstract {
         //cerr << "lowest_so_far after " << lowest_so_far << ", ";
         //cerr << "\n";
 
-        result( lowest_so_far );
+        result |= lowest_so_far;
     }
 
-    inline void operator() ( QuantBuffer<QuantReal,-1> &value ) {
-        handleValue( value );
-    }
-
-    void operator() ( QTA::ObjectAbstract &value ) {
-        //handleValue( value[0] ); *TODO* lägg in virtual method i ObjectAbstract
+    //inline void operator|= ( QuantReal value ) {
+    inline void operator|= ( QuantBuffer<QuantReal> &in_buf ) {
+        handleValue( in_buf );
     }
 
     inline QuantReal operator[] ( int reverse_index ) const {
@@ -118,7 +115,7 @@ class Lowest : public QTA::ObjectAbstract {
 
     QuantReal lowest_so_far = std::numeric_limits<QuantReal>::max();
 
-    QuantBuffer<QuantReal,0>    result;
+    QuantBuffer<QuantReal>    result;
 
 };
 

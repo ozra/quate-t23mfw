@@ -7,7 +7,10 @@
 
 // "Core"
 #include "QuantBase.hh"
-#include "QuantBuffers.hh"
+#include "QuantBuffersBase.hh"
+#include "QuantBuffersSynchronizedHeap.hh"
+#include "QuantBuffersSynchronizedBuffer.hh"
+#include "QuantBuffersReverseIndexedCircular.hh"
 #include "QuantFeed.hh"
 #include "QuantPeriodization.hh"
 #include "QuantStudyContextBase.hh"

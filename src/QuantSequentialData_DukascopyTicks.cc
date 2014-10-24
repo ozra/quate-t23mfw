@@ -280,12 +280,11 @@ bool QuantSequentialData_DukascopyTicks::readTick ( QuantTick &tick )
     buf_ptr += sizeof(unsigned int);
 
     // ask_vol
-    tick.volume = bytesTo_float(buf_ptr);
+    tick.ask_volume = bytesTo_float(buf_ptr);
     buf_ptr += sizeof(unsigned int);
 
     // bid_vol
-    // not used atm *TODO*
-    float bidv = bytesTo_float(buf_ptr);
+    tick.bid_volume = bytesTo_float(buf_ptr);
 
     // This could ofcourse easily be removed by just keeping the buf_ptr walking
     buf_pos += n47::ROW_SIZE;

@@ -64,9 +64,6 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
         }
     }
     */
-    inline void operator<< ( QuantReal value ) {
-        updateMean ( value );
-    }
     inline void updateMean ( QuantReal value, QuantReal weight ) {
         mean_ack += value * weight;
         value_weight += weight;
@@ -79,30 +76,32 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
     inline void calculateMean ( QuantReal close_value ) {
         if ( value_weight == 0 ) {   // Ghost candle?
             //cerr << "calculateMean: " << mean_ack << " / " << value_weight << " USES either: " << result[1] << " or " << close_value << "\n";
+
+
+            // *TODO*
             if (   false    && result.size >= 2 ) {
-                result( result[1] );
+                result |= result[1];
             } else {
-                result( close_value );
+                result |= close_value;
             }
+
+
 
         } else {
             //cerr << "calculateMean: " << mean_ack << " / " << value_weight << " = " << (mean_ack / value_weight) << "\n";
-            result( mean_ack / value_weight );
+            result |= ( mean_ack / value_weight );
             mean_ack = 0.0;
             value_weight = 0;
         }
     }
 
-    inline void operator() ( QuantReal value ) {
-        calculateMean( value );
+
+    inline void operator<< ( QuantReal value ) {
+        updateMean( value );
     }
 
-    inline void operator() ( QuantBuffer<QuantReal,-1> &value ) {
+    inline void operator|= ( QuantReal value ) {
         calculateMean( value );
-    }
-
-    inline void operator() ( QTA::ObjectAbstract &value ) {
-        //handleValue( value[0] ); *TODO* lägg in virtual method i ObjectAbstract
     }
 
     inline QuantReal operator[] ( int reverse_index ) const {
@@ -120,7 +119,7 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
     QuantReal   value_weight = 0.0;
     //int         value_weight = 0;
 
-    QuantBuffer<QuantReal,0>    result;
+    QuantBuffer<QuantReal>    result;
 
 };
 
