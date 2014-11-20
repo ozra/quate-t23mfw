@@ -9,7 +9,7 @@
 /* Find the lowest value over a given length of periods
  */
 
-#include "QuantBasic_DesignChoices.hh"
+#include "QuantBasic_DESIGN_CHOICES.hh"
 #include "QTABase.hh"
 
 namespace QTA {
@@ -24,27 +24,27 @@ class Lowest : public QTA::ObjectAbstract {
      */
 
     Lowest (
-        int length,
-        int max_lookback = 0,
-        QuantPeriodizationAbstract &per = *global_actives.active_periodization
+        size_t length,
+        size_t max_lookback = 0
+        //, QuantPeriodizationAbstract &per = *global_actives.active_periodization
     ) :
         length ( length ),
-        lookback { MAX( max_lookback, length ) }, // max_lookback > 0 ? max_lookback : per.default_buf_size ),
+        lookback { max( max_lookback, length ) }, // max_lookback > 0 ? max_lookback : per.default_buf_size ),
         result ( lookback )
     {
     }
 
     ~Lowest () {}
 
-    inline void handleValue ( QuantBuffer<QuantReal> & in_buf ) {
-        QuantReal usable_length = length;
+    inline void handleAndCommitValue ( QuantBuffer<QuantReal> & in_buf ) {
+        size_t usable_length = length;
 
         //cerr << "length = " << length << ", in_buf.size = " << in_buf.size << ", ";
 
         if ( in_buf.size <= usable_length ) {
             usable_length = in_buf.size - 1;
 
-            cerr << "sets usable length to " << usable_length << ", ";
+            //cerr << "sets usable length to " << usable_length << ", ";
 
             if ( usable_length < 2 ) {  // +1 for CLOSED bar, +1 for lowest_so_far fallen out compare
                 result |= 0.0;
@@ -98,7 +98,7 @@ class Lowest : public QTA::ObjectAbstract {
 
     //inline void operator|= ( QuantReal value ) {
     inline void operator|= ( QuantBuffer<QuantReal> &in_buf ) {
-        handleValue( in_buf );
+        handleAndCommitValue( in_buf );
     }
 
     inline QuantReal operator[] ( int reverse_index ) const {
@@ -110,8 +110,8 @@ class Lowest : public QTA::ObjectAbstract {
     };
 
   private:
-    int length;
-    int lookback;
+    size_t length;
+    size_t lookback;
 
     QuantReal lowest_so_far = std::numeric_limits<QuantReal>::max();
 

@@ -9,12 +9,21 @@
 //#include "boost/circular_buffer.hpp"
 
 #include "QuantBase.hh"
+#include <string>
+#include <sstream>
+#include <boost/date_time.hpp>
+//#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+
+#include "QuantTime.hh"
+
 
 //#define QuantTickFlags unsigned int
 #define QuantTickFlags unsigned char
 
 /*
-struct QuantTickFlags {
+struct QuantTickBaseFlags {
     unit2   tick_type;      // 0 = orderbook or swap changes    - NONE TRADE TICK
                             // 1 = market-trade - unkown side
                             // 2 = market-buy
@@ -37,19 +46,35 @@ struct QuantTickFlags {
 */
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-class QuantTick {
-  public:
-    QuantTick () {};
 
-    QuantTick (
-        QuantTime,
-        QuantReal,
-        QuantReal,
-        QuantReal,
-        QuantReal,
-        QuantReal
-    );
-    //~QuantTick () {};
+/*
+inline std::stringbuf & operator<< ( std::stringbuf &s, Time_T &t ) {
+    s << boost::posix_time::to_iso_extended_string( t ).c_str();
+    return s;
+}
+*/
+
+template <typename Time_T, typename Real_T>
+class QuantTickBase {
+  public:
+    QuantTickBase () {};
+
+    QuantTickBase (
+        Time_T       time,
+        Real_T       ask,
+        Real_T       bid,
+        Real_T       last_price,
+        Real_T       ask_volume,
+        Real_T       bid_volume
+    ) :
+        time { time },
+        ask { ask },
+        bid { bid },
+        last_price { last_price },
+        ask_volume { ask_volume },
+        bid_volume { bid_volume }
+    {}
+    //~QuantTickBase () {};
 
     inline bool isGhostTick () {
         return ask_volume == 0 && bid_volume == 0;  //
@@ -59,30 +84,72 @@ class QuantTick {
     //    return flags |= 1;
     //}
 
-    QuantTime           time;
-    QuantReal           ask;
-    QuantReal           bid;
-    QuantReal           last_price;     // In many cases (most except XBT brokers, which are "true" markets) this is always the same as bid for sell, and ask for buy - an hence - in analysis - always "one of them".
-    QuantReal           ask_volume;
-    QuantReal           bid_volume;
+    //auto to_str () -> std::string;
+    inline auto to_str () -> std::string {
+        std::stringstream buf;
+
+        // *TODO* ! ! ! template this shit!
+
+        buf << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+
+        // *TODO* ! ! ! template this shit!
+        // *TODO* ! ! ! template this shit!
+        /*
+        if ( typeid(Time_T) == typeid(unsigned long long) ) {
+            buf << time << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+
+        } else if ( typeid(Time_T) == typeid(QuantTime) ) {
+            buf << boost::posix_time::to_iso_extended_string( time ) << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+
+        } else {
+            buf << time << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+        }
+        */
+        return buf.str();
+    }
+
+    Time_T           time;
+    Real_T           ask;
+    Real_T           bid;
+    Real_T           last_price;     // In many cases (most except XBT brokers, which are "true" markets) this is always the same as bid for sell, and ask for buy - an hence - in analysis - always "one of them".
+    Real_T           ask_volume;
+    Real_T           bid_volume;
 
   //private:
 };
+
+
+
+/*
+ *
+ * *TODO* the fucking templating...
+ */
+
+/*
+template <typename T_A, typename T_B>
+inline auto QuantTickBase<T_A, T_B>::to_str () -> std::string {
+    std::stringstream buf;
+    if ( typeid(T_A) == typeid(QuantTime) ) {
+        buf << boost::posix_time::to_iso_extended_string( time ) << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+    } else {
+        buf << time << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+    }
+    return buf.str();
+}
+*/
+
+/*
+template <typename T_A, typename T_B>
+inline auto QuantTickBase<QuantTime, T_B>::to_str () -> std::string {
+    std::stringstream buf;
+    buf << boost::posix_time::to_iso_extended_string( time ) << ": " << ask << "(" << ask_volume << "), " << bid << "(" << bid_volume << ")" << " ";
+    return buf.str();
+}
+
+*/
+
+typedef QuantTickBase<QuantTime, QuantReal> QuantTick;
+typedef QuantTickBase<uint64_t, int64_t>    QuantTickFixed;
+
+
 #endif
-
-QuantTick::QuantTick (
-    QuantTime       time,
-    QuantReal       ask,
-    QuantReal       bid,
-    QuantReal       last_price,
-    QuantReal       ask_volume,
-    QuantReal       bid_volume
-) :
-    time { time },
-    ask { ask },
-    bid { bid },
-    last_price { last_price },
-    ask_volume { ask_volume },
-    bid_volume { bid_volume }
-{}
-

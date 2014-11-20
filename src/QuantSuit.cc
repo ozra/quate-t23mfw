@@ -7,6 +7,7 @@
 
 // "Core"
 #include "QuantBase.hh"
+#include "QuantTime.hh"
 #include "QuantBuffersBase.hh"
 #include "QuantBuffersSynchronizedHeap.hh"
 #include "QuantBuffersSynchronizedBuffer.hh"

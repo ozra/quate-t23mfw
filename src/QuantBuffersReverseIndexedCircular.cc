@@ -10,94 +10,94 @@
 
 template <typename T>
 class ReversedCircularStructBuffer {
-  public:
-    ReversedCircularStructBuffer ( int psize )
-    :
-        capacity { psize },
-        buffer { new T[psize] },
-        head_ptr { buffer - 1 }      // We increase it by one in first "advance" before reading / writing
+   public:
+    ReversedCircularStructBuffer(size_t psize)
+        : capacity{ psize }
+        , buffer{ new T[psize] }
+        , head_ptr{ buffer - 1 }
+    // We increase it by one in first "advance" before reading / writing
     {}
 
-    ~ReversedCircularStructBuffer () {
-        delete[] buffer;
-    }
+    ~ReversedCircularStructBuffer() { delete[] buffer; }
 
+    inline operator T&() { return *head_ptr; }
 
-    inline operator T& () {
-        return *head_ptr;
-    }
+    inline T& operator()() { return *head_ptr; }
 
-    inline T& operator () () {
-        return *head_ptr;
-    }
+    inline void set(T value) { *head_ptr = value; }
 
-
-    inline T& operator[]( int backwards_index ) const {
-        #if IS_DEBUG
-        if ( backwards_index > size - 1 ) {
-            throw _bad_quantbuffer_use_; // *TODO*
+    inline T& operator[](N backwards_index) const {
+#if IS_DEBUG
+        if (backwards_index > size - 1) {
+            cerr << "\nIndex overflow in ReverseBuffer: " << backwards_index
+                 << " vs size-1: " << size - 1 << "\n";
+            throw _bad_quantbuffer_indexing_; // *TODO*
         }
-        #endif
+#endif
 
-        int ix = pos - backwards_index;
+        Z ix = pos - Z(backwards_index);
 
-        if ( ix >= 0 ) {
-            return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+        if (ix >= 0) {
+            return buffer[ix];
         } else {
-            //ix += capacity;
+            // ix += capacity;
             return buffer[ix + capacity];
         }
     }
 
-    inline T& operator[]( int backwards_index ) {
-        #if IS_DEBUG
-        if ( backwards_index > size - 1 ) {
-            throw _bad_quantbuffer_use_; // *TODO*
+    inline T& operator[](N backwards_index) {
+#if IS_DEBUG
+        if (backwards_index > size - 1) {
+            cerr << "\nIndex overflow in ReverseBuffer: " << backwards_index
+                 << " vs size-1: " << size - 1 << "\n";
+            throw _bad_quantbuffer_indexing_; // *TODO*
         }
-        #endif
+#endif
 
-        int ix = pos - backwards_index;
+        Z ix = pos - Z(backwards_index);
 
-        if ( ix >= 0 ) {
-            return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+        if (ix >= 0) {
+            return buffer[ix];
         } else {
-            //ix += capacity;
+            // ix += capacity;
             return buffer[ix + capacity];
         }
-        //if ( ix < 0) {
+        // if ( ix < 0) {
         //    ix += capacity;
         //}
-        //return buffer[ix];   // Returning a reference is good because it can be assigned to - BUT - we don't want the performance hit. Use () for setting/updating, [] for getting.
+        // return buffer[ix];
     }
 
-    inline T& advance () {    // return reference to [0] from here...
+    inline T& advance() { // return reference to [0] from here...
         ++head_ptr;
-        if ( ++pos >= capacity ) {
+        if (N(++pos) >= capacity) {
             pos = 0;
             head_ptr = buffer;
         }
 
-        if ( size < capacity ) {
+        if (size < capacity) {
             ++size;
         }
 
         return *head_ptr;
     }
 
-    inline void reset () {
+    inline void reset() {
         pos = 0;
         size = 0;
     }
 
+    inline size_t count() { return size; }
 
-  //private:
-    int capacity;
-    int size = 0;
+    // private:
+    size_t capacity;
+    size_t size = 0;
 
-  private:
-    int pos = -1;
-    T *buffer;
-    T *head_ptr;
+   private:
+    Z pos = -1; // We can't make it ofs_t because we need negative number in
+                  // init *TODO*
+    T* buffer;
+    T* head_ptr;
 };
 
 #endif

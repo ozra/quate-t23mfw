@@ -7,80 +7,64 @@
 * Licence:  MIT (Expat) - http://opensource.org/licenses/mit-license.html
 **/
 
-#include "QuantBasic_DesignChoices.hh"
+#include "rfx11_types.hh"
+#include "QuantBasic_DESIGN_CHOICES.hh"
 #include "QuantFeedAbstract.hh"
 #include "HardSignal.hh"
 
-// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+// #
+// # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+// #
 
-//template <class SLOT_T, bool USE_LOOKBACK >
-template <class SLOT_T >
-class QuantFeed : public QuantFeedAbstract {
-  public:
+// template <class SLOT_T, bool USE_LOOKBACK >
+template <class SLOT_T> class QuantFeed : public QuantFeedAbstract {
+   public:
+    QuantFeed(S broker_id, S symbol_id, Z lookback = 0,
+              QuantMultiKeeperJar* the_jar = global_actives.active_jar)
+        : QuantFeedAbstract(broker_id, symbol_id, lookback, the_jar) {}
 
-    // *TODO* AKTUELL CONTRUCTOR????
-    /*
-    QuantFeed (
-        QuantStudyContextAbstract *context,
-        Str broker_id,
-        Str symbol_id
-    ) :
-        QuantFeedAbstract( context, broker_id, symbol_id )
-    {}
-    */
-
-    QuantFeed (
-        Str broker_id,
-        Str symbol_id,
-        int lookback = 0,
-        QuantKeeperJar *the_jar = global_actives.active_jar
-    ) :
-        QuantFeedAbstract( broker_id, symbol_id, lookback, the_jar )
-    {}
-
-    ~QuantFeed () {}
+    ~QuantFeed() {}
 
     /*
     bool readNext () final;
     */
 
-    void emit () {    // When in back-testing mode, this is called 'manually' by the mainloop the keeps track of which feed is next in line
-        //cerr << "QuantFeed::emit() - regulatedTickSignal" << "\n";
+    void emit() { // When in back-testing mode, this is called 'manually' by the
+                  // mainloop the keeps track of which feed is next in line
+// cerr << "QuantFeed::emit() - regulatedTickSignal" << "\n";
 
-        #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_FEEDS
-            #ifndef DESIGN_CHOICE__USER_DRIVEN_PERIODIZATION_INPUTS
-                onRegulatedTick_P.emit( *this );
-            #endif
+#ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_FEEDS
+        //#ifndef DESIGN_CHOICE__USER_DRIVEN_PERIODIZATION_INPUTS
+        //    onRegulatedTick_P.emit( *this );
+        //#endif
+        onRegulatedTick_T.emit(*this);
 
-            onRegulatedTick_T.emit( *this );
+//#ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
+//    if ( ticks().isGhostTick() == false ) {
+//        //cerr << "QuantFeed::emit() realtick" << "\n";
+//        onRealTick_T.emit( *this );
+//    }
+//#endif
 
-            #ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
-                if ( ticks().isGhostTick() == false ) {
-                    //cerr << "QuantFeed::emit() realtick" << "\n";
-                    onRealTick_T.emit( *this );
-                }
-            #endif
+#else
+        onRegulatedTick.emit();
 
-        #else
-            onRegulatedTick.emit();
+//#ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
+//    if ( ticks().isGhostTick() == false ) {
+//        onRealTick.emit();
+//    }
+//#endif
 
-            #ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
-                if ( ticks().isGhostTick() == false ) {
-                    onRealTick.emit();
-                }
-            #endif
-
-        #endif
-
+#endif
     }
 
-    HardSignal<SLOT_T, QuantFeedAbstract & >                onRegulatedTick_T;
-
-    #ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
-        HardSignal<SLOT_T, QuantFeedAbstract & >                onRealTick_T;
-    #endif
-
+#ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_FEEDS
+    HardSignal<SLOT_T, QuantFeedAbstract&> onRegulatedTick_T;
+//#ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
+//    HardSignal<SLOT_T, QuantFeedAbstract & >                onRealTick_T;
+//#endif
+#endif
 };
 
 #endif

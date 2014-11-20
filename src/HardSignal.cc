@@ -11,29 +11,36 @@
 
 #include <typeinfo>
 
-template <class T, typename P>
-struct MemberPtrPair {
-    MemberPtrPair ()
-    :
-        class_ptr { nullptr },
-        fn_ptr { nullptr }
-    {}
+/*
+ *
+ *
+ * *TODO* change "typename P" to a param-pack - so that we can have 0 params..
+ *
+ *
+ */
 
-    MemberPtrPair ( T *class_ptr, void (T::*fn_ptr)(P) )
-    :
-        class_ptr { class_ptr },
-        fn_ptr { fn_ptr }
-    {}
+#ifndef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
 
-    T *                     class_ptr;
-    void                    (T::*fn_ptr)(P);
+template <class T, typename... Ps> struct MemberPtrPair {
+    MemberPtrPair()
+        : class_ptr{ nullptr }
+        , fn_ptr{ nullptr } {}
+
+    MemberPtrPair(T* class_ptr, void (T::*fn_ptr)(Ps... args))
+        : class_ptr{ class_ptr }
+        , fn_ptr{ fn_ptr } {}
+
+    T* class_ptr;
+    void (T::*fn_ptr)(Ps... args);
 };
 
-template <class T, typename P>
-class HardSignal {
-  public:
-    ~HardSignal () {
-        std::cerr << "HardSignal::~HardSignal - - DESTRUCTOR - -" << "\n";
+#endif
+
+template <class T, typename... Ps> class HardSignal {
+   public:
+    ~HardSignal() {
+        std::cerr << "HardSignal::~HardSignal - - DESTRUCTOR - -"
+                  << "\n";
     }
 
     /*
@@ -43,54 +50,49 @@ class HardSignal {
     }
     */
 
-    inline void operator() ( T *p_class_ptr, void (T::*p_fn_ptr)(P) ) {
-        connect( p_class_ptr, p_fn_ptr );
+    inline void operator()(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args)) {
+        connect(p_class_ptr, p_fn_ptr);
     }
 
-    inline void connect ( T *p_class_ptr, void (T::*p_fn_ptr)(P) ) {
+    inline void connect(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args)) {
         std::cerr << "Adding HardSignal\n";
-        #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
-            class_ptr = p_class_ptr;
-            fn_ptr = p_fn_ptr;
-        #else
-            funcs.push_back( MemberPtrPair<T,P>(p_class_ptr, p_fn_ptr ) );
-        #endif
+#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+        class_ptr = p_class_ptr;
+        fn_ptr = p_fn_ptr;
+#else
+        funcs.push_back(MemberPtrPair<T, Ps...>(p_class_ptr, p_fn_ptr));
+#endif
     }
 
-    inline void emit ( P val ) {
-        //cerr << "Emit HardSignal via ()" << "\n";
-        //cerr << sizeof(funcs) << "\n";
-        //cerr << funcs.size() << "\n";
+    inline void emit(Ps... args) {
+// cerr << "Emit HardSignal via ()" << "\n";
+// cerr << sizeof(funcs) << "\n";
+// cerr << funcs.size() << "\n";
 
-        #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
-            #ifdef DESIGN_CHOICE__USER_DRIVEN_PERIODIZATION_INPUTS
-                (class_ptr->*(fn_ptr))( val );
-            #else
-                if ( class_ptr ) {
-                    ( class_ptr->*(fn_ptr) )( val );
-                }
-            #endif
+#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+        // if ( class_ptr ) {
+        (class_ptr->*(fn_ptr))(args...);
+//}
 
-        #else
-            for ( auto pair : funcs ) {
-                //try {
-                ( pair.class_ptr->*(pair.fn_ptr) )( val );
-                //} catch (...) {
-                //    cerr << "\n\nSome shit went down when calling listener!\n\n\n";
-                //}
-            }
-        #endif
+#else
+        for (auto pair : funcs) {
+            // try {
+            (pair.class_ptr->*(pair.fn_ptr))(args...);
+            //} catch (...) {
+            //    cerr << "\n\nSome shit went down when calling
+            // listener!\n\n\n";
+            //}
+        }
+#endif
     }
 
-  private:
-    #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
-        T *                     class_ptr = nullptr;
-        void                    (T::*fn_ptr)(P) = nullptr;
-    #else
-        std::vector< MemberPtrPair<T, P> > funcs;
-    #endif
+   private:
+#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+    T* class_ptr = nullptr;
+    void (T::*fn_ptr)(Ps...) = nullptr;
+#else
+    std::vector<MemberPtrPair<T, Ps...>> funcs;
+#endif
 };
 
 #endif
-
-

@@ -16,3 +16,9 @@
  isn't.
 
 
+2014-11-04 - Been re-structuring and testing a lot the last couple days.
+Time-stomping different periodizations, time-stones (mini epochs), ticks, etc
+is getting to where it should be. Needs to be verified even more with edge
+cases (however esoteric they may be).
+The one-off mystery (no more off-by-two's anyway) is still lurking.
+

@@ -6,7 +6,6 @@
 * Licence:  MIT (Expat) - http://opensource.org/licenses/mit-license.html
 **/
 
-
 /*
  *
  *
@@ -19,7 +18,11 @@
  *
  */
 
-
+/*
+ *
+ *
+ *
+ *
 
 #include "QuantSequentialData.hh"
 
@@ -37,12 +40,12 @@ class QuantSequentialData_QuledAbstract : public QuantSequentialDataAbstract
     virtual void freshChunkInits () = 0;     // Setup primary deltas
     virtual void readUnit () = 0;            // Read and decode one sample
 
-    /*
+    / *
      *
      *
      *    *TODO*
      *
-     */
+     * /
 
   private:
     template <typename T> inline T          read_uint32 ();
@@ -59,8 +62,12 @@ class QuantSequentialData_QuledAbstract : public QuantSequentialDataAbstract
 
     //int loadNextChunk();
 
+    fs::path        base_dir = "BASE_DIR/";
+    std::string     symbol = "SYMBOL_NAME";
+    std::string     locator_ending = "_some_data.quled";
+
     pxt::ptime      chunk_time_pos;
-    /*
+    / *
     std::string     symbol;
     double          point_decimals;
 
@@ -68,9 +75,9 @@ class QuantSequentialData_QuledAbstract : public QuantSequentialDataAbstract
     size_t          buf_pos = 0;
     size_t          byte_buffer_size = 0;
     byte            *byte_buffer = nullptr;
-    */
+    * /
 
-    /*
+    / *
     //n47::tick_data  *buffer = nullptr;
     byte *raw_buffer = nullptr;
     size_t raw_buffer_capacity;
@@ -79,12 +86,14 @@ class QuantSequentialData_QuledAbstract : public QuantSequentialDataAbstract
     byte *decode_buffer = nullptr;
     size_t decode_buffer_capacity;
     size_t decode_buffer_size;
-    */
+    * /
 
 };
+*/
 
 #endif
 
+/*
 std::string ThisFugginFuglyIntToStr( int n, int sizing ) {
     std::string out;
     char one_char[2];
@@ -105,9 +114,7 @@ std::string ThisFugginFuglyIntToStr( int n, int sizing ) {
 const fs::path QuantSequentialData_QuledAbstract::getFilenameFromLocator () {
     dt::date                dts { chunk_time_pos.date() };
     dt::greg_year_month_day ymd { dts.year_month_day() };
-    fs::path                filename = "BASE_DIR/";
-    std::string             symbol = "SYMBOL_NAME";
-    std::string             locator_ending = "_some_data.quled";
+    fs::path                filename = base_dir;
 
     filename /= symbol;
     filename /= ThisFugginFuglyIntToStr( ymd.year, 1000 );
@@ -119,4 +126,4 @@ const fs::path QuantSequentialData_QuledAbstract::getFilenameFromLocator () {
     return filename;
 
 }
-
+*/

@@ -34,8 +34,8 @@ class QuantBufferAbstract {
     virtual ~QuantBufferAbstract ();
 
 
-    //auto needs( int lookback_length ) -> AbstractQuantBuffer &;
-    void needs ( int lookback_length );
+    //auto needs( size_t lookback_length ) -> AbstractQuantBuffer &;
+    void needs ( size_t lookback_length );
 
 /*
     virtual operator T() = 0;
@@ -51,6 +51,10 @@ class QuantBufferAbstract {
         head_ptr = ptr + capacity - 1;
     }
 
+    inline size_t count () {
+        return size;
+    }
+
     //virtual int getSizeInBytes () = 0;
     //virtual int getDataTypeSize () = 0;
     //virtual int getZeroOffset () = 0;
@@ -64,8 +68,8 @@ class QuantBufferAbstract {
     bool                                datum_value_has_been_set = false;
     #endif
 
-    int             capacity = 0;
-    int             size = 0;
+    size_t             capacity = 0;
+    size_t             size = 0;
 
     QuantTypeSized     *tail_ptr; // = nullptr;
     QuantTypeSized     *head_ptr; // = nullptr;
@@ -79,14 +83,14 @@ QuantBufferAbstract::~QuantBufferAbstract ()
     cerr << "AbstractQuantBuffer::~AbstractQuantBuffer - - DESTRUCTOR - - " << "\n";
 }
 
-//auto AbstractQuantBuffer::needs ( int lookback_length )
+//auto AbstractQuantBuffer::needs ( size_t lookback_length )
 //  -> AbstractQuantBuffer &
-void QuantBufferAbstract::needs ( int lookback_length )
+void QuantBufferAbstract::needs ( size_t lookback_length )
 {
     #ifdef IS_DEBUG
     assert( ! is_cut_in_stone );
     #endif
 
-    capacity = MAX( capacity, lookback_length );
+    capacity = max( capacity, lookback_length );
     //return *this;   // for chaining
 }

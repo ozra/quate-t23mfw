@@ -9,7 +9,7 @@
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
 #include "QuantBuffersSynchronizedBuffer.hh"
-#include "QuantPeriodizationAbstract.hh"
+//#include "QuantPeriodizationAbstract.hh"
 
 #include "QTA_ObjectAbstract.hh"
 

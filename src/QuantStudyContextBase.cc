@@ -7,7 +7,7 @@
 **/
 
 #include "QuantStudyContextAbstract.hh"
-
+#include "QuantProfiling.hh"
 
 #define plot_stream std::cout
 
@@ -180,45 +180,15 @@ template <> void QuantStudyContext<true>::init_plotting () {
     //plots_enabled = isBuffersOutputEnabled();
     //plot_buf = &std::cout;
     plot_data = new PlotCollection();
-    plot_data->time_delta_ms_rel_resolution = 1000 * 60; // minute resolution
-}
-
-template <> void QuantStudyContext<false>::close_plot_lap ( QuantTime ) {
-}
-
-template <> void QuantStudyContext<true>::close_plot_lap ( QuantTime ts ) {
-    if ( is_plot_headerized == false ) {
-        cerr << "close_plot_lap - finalizing headers" << "\n";
-
-        assert( plot_count <= MAX_PLOTS );
-
-        //plot_data->series[plot_ix] << "], [";    // Close the header, pad with empty arr for last comma
-
-        //last_plot_colors = new Str[plot_count];
-        is_plot_headerized = true;
-
-    //} else {
-    //    plot_buf << "], [";    // Close the header, pad with empty arr for last comma
-    } else {
-        pxt::time_duration delta_ts( ts - plot_data->buf_epoch );
-        //cerr << "pxt::time_duration delta_ts " << delta_ts << "\n";
-        unsigned long long delta_ts_in_s = delta_ts.total_milliseconds() / plot_data->time_delta_ms_rel_resolution;
-        //cerr << "pxt::time_duration delta_ts_in_s " << delta_ts_in_s << "\n";
-
-        plot_data->timestamps << delta_ts_in_s << ",";
-
-        assert( plot_ix == plot_count );
-        ++value_count_ix;
-    }
-
-    plot_ix = 0;
-
+    plot_data->time_delta_ms_rel_resolution = 1000; // seconds resolution   * 60; // minute resolution
 }
 
 template <> void QuantStudyContext<false>::finalize_plot () {
 }
 
 template <> void QuantStudyContext<true>::finalize_plot () {
+
+    profiler.start( PLOTTING );
 
     constexpr double BUFFER_FORMAT_VERSION = 0.2;
 
@@ -281,6 +251,43 @@ template <> void QuantStudyContext<true>::finalize_plot () {
         << "]"   << "\n"
         << "}";
 
+    profiler.end( PLOTTING );
+
+}
+
+template <> void QuantStudyContext<false>::close_plot_lap ( QuantTime ) {
+}
+
+template <> void QuantStudyContext<true>::close_plot_lap ( QuantTime ts ) {
+    profiler.start( PLOTTING );
+
+    if ( is_plot_headerized == true ) {
+        //pxt::time_duration delta_ts ( ts - plot_data->buf_epoch );
+        pxt::time_duration delta_ts = ts - plot_data->buf_epoch;
+        //cerr << "pxt::time_duration delta_ts " << delta_ts << "\n";
+        unsigned long long delta_ts_in_s = delta_ts.total_milliseconds() / plot_data->time_delta_ms_rel_resolution;
+        //cerr << "pxt::time_duration delta_ts_in_s " << delta_ts_in_s << "\n";
+
+        plot_data->timestamps << delta_ts_in_s << ",";
+
+        assert( plot_ix == plot_count );
+        ++value_count_ix;
+
+        plot_ix = 0;
+        profiler.end( PLOTTING );
+        return;
+
+    //} else {
+    //    plot_buf << "], [";    // Close the header, pad with empty arr for last comma
+    } else {
+        cerr << "close_plot_lap - finalizing headers" << "\n";
+        assert( plot_count <= MAX_PLOTS );
+        is_plot_headerized = true;
+        plot_ix = 0;
+        profiler.end( PLOTTING );
+        return;
+    }
+
 }
 
 //#pragma GCC diagnostic push
@@ -316,27 +323,24 @@ template <> void QuantStudyContext<true>::plot_ohlc (
     Str down_border_color,
     bool dynamic_color
 ) {
-    if ( is_plot_headerized ) {     // *TODO* switch out a function ptr as soon as init is done..
-        //cerr << "Plot is inited" << "\n";
+    profiler.start( PLOTTING );
 
-        //plot_batch[plot_ix] = value;
-        bool color_changed = false;
+    if ( is_plot_headerized ) {     // *TODO* switch out a function ptr as soon as init is done..
 
         if ( dynamic_color ) {
             Str new_colors = up_body_color + down_body_color + up_border_color + down_border_color;
-            if ( ( color_changed = ( plot_data->last_plot_colors[plot_ix] != new_colors ) ) == true ) {
+            if ( plot_data->last_plot_colors[plot_ix] != new_colors ) {
                 plot_data->last_plot_colors[plot_ix] = new_colors;
+                plot_data->dynamics[plot_ix] << "[" << value_count_ix << ",\"" << up_body_color << "\",\"" << down_border_color << "\",\""
+                    << up_border_color << "\",\"" << down_border_color << "\"],";
             }
         }
 
-        plot_data->series[plot_ix] << "[" << o << "," << h << "," << l << "," << c << "],";
-
-        if ( color_changed ) {
-            plot_data->dynamics[plot_ix] << "[" << value_count_ix << ",\"" << up_body_color << "\",\"" << down_border_color << "\",\""
-                << up_border_color << "\",\"" << down_border_color << "\"],";
-        }
-
+        plot_data->series[plot_ix] << "[" << o << "," << h << "," << l << "," << c << "],  ";
         plot_separator();
+        profiler.end( PLOTTING );
+        return;
+
 
     } else {
         cerr << "Builds plot header" << "\n";
@@ -348,6 +352,7 @@ template <> void QuantStudyContext<true>::plot_ohlc (
             << "";
         ++plot_count;
         ++plot_ix;
+        profiler.end( PLOTTING );
 
     }
 }
@@ -370,33 +375,31 @@ template <> void QuantStudyContext<true>::plot (
     enum_line_style line_style,
     bool dynamic_color
 ) {
+    profiler.start( PLOTTING );
     // If we're not inited we sacrifice the very first value in order to
     // establish plot count first.
     if ( is_plot_headerized ) {     // *TODO* switch out a function ptr as soon as init is done..
         //cerr << "Plot is inited" << "\n";
 
-        bool color_changed = false;
-
         if ( dynamic_color ) {
             Str new_colors = color1 + color2 + fill_color;
-            if ( ( color_changed = ( plot_data->last_plot_colors[plot_ix] != new_colors ) ) == true ) {
+            if ( plot_data->last_plot_colors[plot_ix] != new_colors ) {
+                plot_data->dynamics[plot_ix] << "[" << value_count_ix << "\"" << color1 << "\",\"" << color2 << "\",\"" << fill_color << "\"],";
                 plot_data->last_plot_colors[plot_ix] = new_colors;
             }
         }
 
-        plot_data->series[plot_ix] << "[" << value1 << "," << value2 << "],";
-
-        if ( color_changed ) {
-            plot_data->dynamics[plot_ix] << "[" << value_count_ix << "\"" << color1 << "\",\"" << color2 << "\",\"" << fill_color << "\"],";
-        }
-
+        plot_data->series[plot_ix] << "[" << value1 << "," << value2 << "],  ";
         plot_separator();
+        profiler.end( PLOTTING );
+        return;
 
     } else {
         cerr << "Builds plot header" << "\n";
         plot_data->headers[plot_ix] << type << "," << "\"" << buffer_name << "\",\"" << color1 << "\",\"" << color2 << "\",\"" << fill_color << "\"," << thickness << "," << line_style;
         ++plot_count;
         ++plot_ix;
+        profiler.end( PLOTTING );
     }
 }
 
@@ -415,6 +418,7 @@ template <> void QuantStudyContext<true>::plot (
     enum_line_style line_style,
     bool dynamic_color
 ) {
+    profiler.start( PLOTTING );
     // If we're not inited we sacrifice the very first round of values in
     // order to establish plot count first.
     if ( is_plot_headerized ) {     // *TODO* switch out a function ptr as soon as init is done..
@@ -423,13 +427,16 @@ template <> void QuantStudyContext<true>::plot (
             plot_data->last_plot_colors[plot_ix] = color;
         }
 
-        plot_data->series[plot_ix] << value << ",";
+        plot_data->series[plot_ix] << value << ", ";
         plot_separator();
+        profiler.end( PLOTTING );
+        return;
 
     } else {
         cerr << "Builds plot header" << "\n";
         plot_data->headers[plot_ix] << type << "," << "\"" << buffer_name << "\",\"" << color << "\"," << thickness << "," << line_style;
         ++plot_count;
         ++plot_ix;
+        profiler.end( PLOTTING );
     }
 }

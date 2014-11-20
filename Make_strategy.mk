@@ -4,7 +4,8 @@ VPATH=src/:$(T23SRC):$(T23SRC)/QTA/src/
 
 STRATEGY_LINK_FLAGS=-static
 
-STRATEGY_COMPILE_FLAGS= $(T23MFW_CC_COMPILE_FLAGS) \
+STRATEGY_COMPILE_FLAGS= $(CPPFLAGS) \
+	-MMD \
 	-Iinclude/ \
     -Iext/T23MFW/ext/dukascopy/lib/easylzma/src/ \
     -Iext/T23MFW/ext/dukascopy/include/ \
@@ -36,53 +37,64 @@ ALL_OBJ_FILES_NOBELT= $(T23MFW_OBJ_FILES_NOBELT) $(STRATEGY_OBJ_FILES_NOBELT)
 ALL_OBJ_FILES=$(ALL_OBJ_FILES_DEVDBG) $(ALL_OBJ_FILES_DEVFAST) $(ALL_OBJ_FILES_NOBELT)
 
 
-all: devdbg
-
+all: dbgdev
+devfast: bin/DevFast/strategy_standalone
+#syntax: bin/DbgDev/strategy_standalone_syntax
+dbgdev: bin/DbgDev/strategy_standalone
+nobelt: bin/NoBelt/strategy_standalone
 clean:
 	$(RM) include/* \
 			bin/DbgDev/* bin/DevFast/* bin/NoBelt/* \
 			objs/DbgDev/* objs/DevFast/* objs/NoBelt/*
 
-devdbg: bin/DbgDev/strategy_standalone
 
-devfast: bin/DevFast/strategy_standalone
+# syntax: bin/DbgDev/strategy_standalone_syntax
+# bin/DbgDev/strategy_standalone_syntax: $(ALL_HH_FILES) $(ALL_OBJ_FILES_DEVDBG)
+# 		$(T23MFW_LINKER_DBGDEV) $(STRATEGY_LINK_FLAGS) \
+# 		-o $@ \
+# 		$(ALL_OBJ_FILES_DEVDBG) \
+# 		$(STRATEGY_LIBS)
 
-nobelt: bin/NoBelt/strategy_standalone
+syntax: $(ALL_HH_FILES) $(ALL_OBJ_FILES_DEVDBG)
+include/%.hh: %.cc
+	noah-cpp --fixed-path -o 'include/' $<
+objs/DbgDev/%.o: %.cc
+	$(T23MFW_COMPILER_SYNTAX) $(STRATEGY_COMPILE_FLAGS) -c -o $@ \
+		$<
+
 
 bin/DbgDev/strategy_standalone: $(ALL_HH_FILES) $(ALL_OBJ_FILES_DEVDBG)
 		$(T23MFW_LINKER_DBGDEV) $(STRATEGY_LINK_FLAGS) \
-		-o $@ $(ALL_OBJ_FILES_DEVDBG) \
+		-o $@ \
+		$(ALL_OBJ_FILES_DEVDBG) \
 		$(STRATEGY_LIBS)
-
 include/%.hh: %.cc
 	noah-cpp --fixed-path -o 'include/' $<
-
 objs/DbgDev/%.o: %.cc
-	$(T23MFW_COMPILER_DBGDEV) $(STRATEGY_COMPILE_FLAGS) -c -o $@ $<
+	$(T23MFW_COMPILER_DBGDEV) $(STRATEGY_COMPILE_FLAGS) -c -o $@ \
+		$<
 
 
 bin/DevFast/strategy_standalone: $(ALL_HH_FILES) $(ALL_OBJ_FILES_DEVFAST)
 		$(T23MFW_LINKER_DEVFAST) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_DEVFAST) \
 		$(STRATEGY_LIBS)
-
 include/%.hh: %.cc
 	noah-cpp --fixed-path -o 'include/' $<
-
 objs/DevFast/%.o: %.cc
-	$(T23MFW_COMPILER_DEVFAST) $(STRATEGY_COMPILE_FLAGS) -c -o $@ $<
+	$(T23MFW_COMPILER_DEVFAST) $(STRATEGY_COMPILE_FLAGS) -c -o $@ \
+		$<
 
 
 bin/NoBelt/strategy_standalone: $(ALL_HH_FILES) $(ALL_OBJ_FILES_NOBELT)
 		$(T23MFW_LINKER_NOBELT) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_NOBELT) \
 		$(STRATEGY_LIBS)
-
 include/%.hh: %.cc
 	noah-cpp --fixed-path -o 'include/' $<
-
 objs/NoBelt/%.o: %.cc
-	$(T23MFW_COMPILER_NOBELT) $(STRATEGY_COMPILE_FLAGS) -c -o $@ $<
+	$(T23MFW_COMPILER_NOBELT) $(STRATEGY_COMPILE_FLAGS) -c -o $@ \
+		$<
 
 
 -include $(ALL_OBJ_FILES:.o=.d)

@@ -28,7 +28,7 @@ class QuantPeriodization : public QuantPeriodizationAbstract {
         double period,
         QuantPeriodizationAbstract &quant_period,
         int lookback = PERIODIZATION_DEFAULT_SIZE,
-        QuantKeeperJar *the_jar = global_actives.active_jar
+        QuantMultiKeeperJar *the_jar = global_actives.active_jar
     ) :
         QuantPeriodizationAbstract (
             period,
@@ -42,7 +42,7 @@ class QuantPeriodization : public QuantPeriodizationAbstract {
         double period,
         QuantFeedAbstract &quant_feed,
         int lookback = PERIODIZATION_DEFAULT_SIZE,
-        QuantKeeperJar *the_jar = global_actives.active_jar
+        QuantMultiKeeperJar *the_jar = global_actives.active_jar
     ) :
         QuantPeriodizationAbstract (
             period,
@@ -55,15 +55,15 @@ class QuantPeriodization : public QuantPeriodizationAbstract {
     //~QuantPeriodization ();
 
     #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_PERIODIZATIONS
-        HardSignal<SLOT_T,int> onBarClose_T;
+        HardSignal<SLOT_T> onBarClose_T;
     #endif
 
     void emit_signal() final {
         #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_PERIODIZATIONS
-            #ifndef DESIGN_CHOICE__USER_DRIVEN_PERIODIZATION_INPUTS
-                onBarClose_P.emit( 0 );
-            #endif
-            onBarClose_T.emit( 0 );
+            //#ifndef DESIGN_CHOICE__USER_DRIVEN_PERIODIZATION_INPUTS
+            //    onBarClose_P.emit();
+            //#endif
+            onBarClose_T.emit();
         #else
             onBarClose.emit();
         #endif

@@ -7,49 +7,63 @@ T23MFW_OBJ_FILES_NOBELT := $(addprefix objs/NoBelt/,$(notdir $(T23MFW_CC_FILES:.
 
 
 # # # # # # # # # DBGDEV # # # # # # # # # # # #
-T23MFW_COMPILER_DBGDEV=clang++ \
+T23MFW_COMPILER_DBGDEV=ccache clang++ \
 						-W -Wall -std=c++11 \
+						-Werror=return-type \
 						-g -O0 -pedantic \
 						-march=native \
 						-DIS_DEBUG -DIS_DEEPBUG \
-						-MMD
-#						-pthread \
-
-T23MFW_LINKER_DBGDEV=clang++ -W -Wall -std=c++11 \
+#						-pthread
+T23MFW_LINKER_DBGDEV=ccache clang++ -W -Wall -std=c++11 \
 						-g -O0 -pedantic \
 						-DIS_DEBUG -DIS_DEEPBUG
 #						-pthread \
 
 
+# # # # # # # # # SYNTAX CHECK  # # # # # # # # # # # #
+T23MFW_COMPILER_SYNTAX=clang++ \
+						-fsyntax-only \
+						-W -Wall -std=c++11 -Werror=return-type -g -O0 -pedantic -march=native \
+						-DIS_DEBUG -DIS_DEEPBUG
+T23MFW_LINKER_SYNTAX=foo
+
+
 # # # # # # # # # DEVFAST # # # # # # # # # # # #
-T23MFW_COMPILER_DEVFAST=g++ \
+T23MFW_COMPILER_DEVFAST=ccache g++ \
 						-W -Wall -std=c++11 \
-						-O2 -pedantic -march=native \
+						-Werror=return-type \
+						-O3 -pedantic -march=native \
 						-fomit-frame-pointer -ffast-math -flto \
+						-funsafe-loop-optimizations \
 						-fno-default-inline \
 						-DIS_DEBUG -DIS_DEVFAST \
-						-MMD
-#						-pthread \
-
-T23MFW_LINKER_DEVFAST=g++ -W -Wall -std=c++11 \
-						-O2 -pedantic \
-						-fomit-frame-pointer -ffast-math -flto \
+#						-fno-strict-overflow \
+#						-pthread
+T23MFW_LINKER_DEVFAST=ccache g++ -W -Wall -std=c++11 \
+						-O3 -pedantic \
+						-flto \
 						-fno-default-inline \
 						-DIS_DEBUG -DIS_DEVFAST
 #						-pthread \
 
 
 # # # # # # # # # NOBELT # # # # # # # # # # # #
-T23MFW_COMPILER_NOBELT=g++ \
+T23MFW_COMPILER_NOBELT=ccache g++ \
 						-W -Wall -std=c++11 \
+						-Werror=return-type \
 						-O3 -march=native \
 						-fomit-frame-pointer -ffast-math -flto \
+						-funsafe-loop-optimizations \
+						-fno-default-inline \
 						-DNDEBUG -DIS_NOBELT \
-						-MMD
-#						-pthread \
-
-T23MFW_LINKER_NOBELT=g++ -W -Wall -std=c++11 \
-						-fomit-frame-pointer -ffast-math -flto \
+#						-fno-strict-overflow \
+#						-pthread
+T23MFW_LINKER_NOBELT=ccache g++ -W -Wall -std=c++11 \
+						-flto \
+						-fno-default-inline \
 						-O3 -pedantic
-#						-pthread \
+#						-pthread
 
+
+T23MFW_COMPILER_RELEASE=$(T23MFW_COMPILER_NOBELT)
+T23MFW_LINKER_RELEASE=$(T23MFW_LINKER_NOBELT)
