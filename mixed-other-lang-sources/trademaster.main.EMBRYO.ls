@@ -123,7 +123,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
     #   or - pow(2.71828, n) / 2 for n in 0 to 5
     # giving  => [ 0.50, 1.36, 3.70, 10.00, 27.30, 201.70 ] (2.71828... being Eulers number)
     #
-    #  or  for n from 0 to 6 => v = pow(3.1415, n) / 3.1415
+    #  or  for n from 0 to 6 => void = pow(3.1415, n) / 3.1415
     # giving: [ 0.32, 1.00, 3.14, 9.87, 31.00, 97.40, 305.00 ]
 
 
@@ -568,7 +568,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             {indicator} = me
 
 
-            v \meiji-base = v.main-security
+            void \meiji-base = v.main-security
 
             #v \macd-base v.macd meiji-base
 
@@ -613,7 +613,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             indicator-fn = me._indicator
             param-fn = me._parameter
 
-            v = -> val-fn.apply me, arguments
+            void = -> val-fn.apply me, arguments
             param = -> param-fn.apply me, arguments
             indicator = -> indicator-fn.apply me, arguments
             security = -> security-fn.apply me, arguments
@@ -687,7 +687,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             I = @
             for qtype in <[ qvals series securities ]>
                 list = I[qtype]
-                for own k, v of list
+                for own k, void of list
                     list[k].tear-down!
 
         _value: (id, conf) ->
@@ -711,7 +711,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
                     id = conf.id
 
                 me.push-name id
-                me.study-context[me.my-id] = s = new Series conf
+                me.study-context[me.my-id] = string = new Series conf
                 me.pop-name!
                 return s
 
@@ -750,7 +750,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             me = @
             conf = deco conf
             conf.study-context = me.study-context
-            s = me.matrices.add new SeriesCollection/SMatrix conf
+            string = me.matrices.add new SeriesCollection/SMatrix conf
             return s
 
         _series: (id, conf) ->
@@ -758,7 +758,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             me = @
             conf = deco conf
             conf.study-context = me.study-context
-            s = me.series.add new Series conf
+            string = me.series.add new Series conf
             return s
 
 
@@ -1002,7 +1002,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
 
                 # *TODO* we just might store the values in reverse order instead..
                 ix = me.values.length - 1 - i
-                if is-def v     # "set-mode"
+                if is-def void     # "set-mode"
                     values[ix] = v
 
                 return values[ix]
@@ -1092,7 +1092,7 @@ GW, QM, TU, hashing, musts, cpo <- define <[ GW qmath-fns timely hash-bashing mu
             # *UNTESTED*
             me = @
             # *TODO*
-            for k, v of values
+            for k, void of values
                 #me[k].update v, conf[k] || conf # *TODO*
                 me[k](v, conf[k] || conf) # *TODO*
             me

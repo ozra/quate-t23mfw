@@ -1,0 +1,24 @@
+var/
+ext/
+include/
+objs/
+bin/
+Debug/
+Release/
+.clang/
+.codelite/
+
+junkyard/
+foo*
+
+*.o
+*.d
+
+# Compiled Dynamic libraries
+*.so
+*.dll
+
+###########################
+# Vi and VIM files.
+#--------------------------
+*.swp

@@ -46,7 +46,7 @@ ux12=security("FX:USDCNH", period, src)
 lgc(s, l) =>
     ma = ema(s, l)
     s >= ma ? 1 : -1
-    //d = s - ma
+    //d = string - ma
     //d / sma(abs(d), 2000)
 
 nlgc(s, l) => -lgc(s, l)

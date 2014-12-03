@@ -13,18 +13,18 @@
 
 #include "QuantProfiling.hh"
 
-extern QuantStudyContextAbstract*
-createStrategy(QuantExecutionContext& exec_space, HashTree conf);
-void destroyStrategy(QuantStudyContextAbstract*);
+extern QuantStudyContextAbstract *
+createStrategy(QuantExecutionContext & exec_space, HashTree conf);
+void destroyStrategy(QuantStudyContextAbstract *);
 
 namespace po = boost::program_options;
 
 #include "QuantTime.hh"
 
-void doTimeTests() {
+void doTimeTests()
+{
     qts::EpochS epoch_x(qts::EpochS::hours(5));
     qts::TsS ts_s(qts::TsS::minutes(447));
-
     cerr << "EPOCH_MN etc.\n\n" << epoch_x << " (" << epoch_x.to_minutes()
          << "), " << ts_s << " ( " << ts_s.to_minutes() << "), ";
     epoch_x += ts_s;
@@ -35,12 +35,10 @@ void doTimeTests() {
     // cerr << "ep + ts + ts: " << ((epoch_x + ts_s + ts_s).to_minutes());
     cerr << "ep + ts + ts: " << ((epoch_x + ts_s + ts_s));
     cerr << "\n\n\n";
-
     cerr << "qts::ptime_from_ms qts::ms_from_ptime pxt::time_from_string "
          << "\"2012-06-13 17:47:03.123456\" => \""
          << qts::ptime_from_ms(qts::ms_from_ptime(
-                pxt::time_from_string("2012-06-13 17:47:03.123456"))) << "\"\n";
-
+                                   pxt::time_from_string("2012-06-13 17:47:03.123456"))) << "\"\n";
     /*
         uint32_t rgb = 0xffaa55;
         cerr << "rgb:" << rgb << " r " << (rgb & 255) << " g " << ((rgb >> 8) &
@@ -52,7 +50,8 @@ void doTimeTests() {
     */
 }
 
-void doDataTypeTests() {
+void doDataTypeTests()
+{
     cerr << "DATA SIZES:"
          << "int: " << sizeof(int) << " "
          << "long: " << sizeof(long) << " "
@@ -63,37 +62,31 @@ void doDataTypeTests() {
          << "\n";
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char ** argv)
+{
     // clock_t prof_start = clock();
     profiler.start(STARTUP);
-
     std::cerr.sync_with_stdio(false);
     std::cout.sync_with_stdio(false);
-
     doTimeTests();
     doDataTypeTests();
-
     cerr << "Init retroactivation of study / strategy" << argc << " " << argv
          << "\n";
-
     po::variables_map opts;
     po::options_description desc("Options");
-
     desc.add_options()("help", "Show help")(
         "start", po::value<std::string>()->default_value("2013-12-01"),
         "Start timepoint ( YYYY-MM-DD[ HH:MM[:SS]] )")(
-        "end", po::value<std::string>()->default_value("2014-01-01"),
-        "End timepoint ( YYYY-MM-DD[ HH:MM[:SS]] )")(
-        "plot", po::value<bool>()->default_value(true),
-        "Enable plotting output of series")(
-        "realtime", po::value<bool>()->default_value(false),
-        "Follow ticks realtime (forward testing/running)")(
-        "optimization", po::value<bool>()->default_value(false),
-        "Is it an optimization backtest?");
-
+            "end", po::value<std::string>()->default_value("2014-01-01"),
+            "End timepoint ( YYYY-MM-DD[ HH:MM[:SS]] )")(
+                "plot", po::value<bool>()->default_value(true),
+                "Enable plotting output of series")(
+                    "realtime", po::value<bool>()->default_value(false),
+                    "Follow ticks realtime (forward testing/running)")(
+                        "optimization", po::value<bool>()->default_value(false),
+                        "Is it an optimization backtest?");
     po::store(po::parse_command_line(argc, argv, desc), opts);
     po::notify(opts);
-
     // pxt::ptime start_date( dt::date( 2013, 12, 1 ) ); // "2013-09-01
     // 00:00:00.000" ) );
     // pxt::ptime end_date( makeTime( "2014-01-01 23:59:59.999" ) );
@@ -101,26 +94,24 @@ int main(int argc, char** argv) {
     if (start_date_str.length() < 10) {
         cerr << desc << "\n";
         return 1;
-    } else if (start_date_str.length() < 13) {
+    }
+    else if (start_date_str.length() < 13) {
         start_date_str += " 00:00:00.000";
     }
-
     std::string end_date_str = opts["end"].as<std::string>();
     if (end_date_str.length() < 10) {
         cerr << desc << "\n";
         return 1;
-    } else if (end_date_str.length() < 13) {
+    }
+    else if (end_date_str.length() < 13) {
         end_date_str += " 23:59:59.999";
     }
-
     if (opts.count("help")) {
         cerr << desc << "\n";
         return 1;
     }
-
     cerr << "Start was set to " << start_date_str << ".\n";
     cerr << "End was set to " << end_date_str << ".\n";
-
     if (opts.count("plot")) {
         cerr << "Plot was set to " << opts["plot"].as<bool>() << ".\n";
     }
@@ -131,48 +122,39 @@ int main(int argc, char** argv) {
         cerr << "Optimization was set to " << opts["optimization"].as<bool>()
              << ".\n";
     }
-
     pxt::ptime start_date(
         makeTime(start_date_str)); // "2013-09-01 00:00:00.000" ) );
     pxt::ptime end_date(makeTime(end_date_str));
     bool enable_plotting = opts["plot"].as<bool>();
     bool is_optimization = opts["optimization"].as<bool>();
-
     //
-
+    // *TODO*  StrategyInstanceData
     HashTree strategy_conf; // *TODO* receive through some means, or read...
-
     //
     //
     // *TODO* Examples for "ZarUziScalperBot"
     strategy_conf.put("main_broker_id", "DUKASCOPY");
     strategy_conf.put("main_symbol", "USDZAR");
-    strategy_conf.put("fast_period", 0.10);
+    strategy_conf.put("fast_period", 0.05);
+    strategy_conf.put("pm_period_len", 0.10);
     //
     //
     //
-
     cerr << "Init retroactivator\n";
     QuantExecutionRetroactive retro_test(start_date, end_date, enable_plotting,
                                          is_optimization);
-
     // strategy_conf.add("start_date", start_date);
     // strategy_conf.add("end_date", end_date);
-
-    QuantStudyContextAbstract* strategy =
+    QuantStudyContextAbstract * strategy =
         createStrategy(retro_test, strategy_conf);
     cerr << "Init strategy\n";
-
     cerr << "Connext retroactivator and strategy\n";
     strategy->setRunContext(&retro_test);
-
     cerr << "Run retro test\n";
     int ret = retro_test.run();
-
     cerr << "Destroy strategy"
          << "\n";
     destroyStrategy(strategy);
-
     // global_profile_decoding -= 1073741824;
     // cerr << "All file-loading took: " << ( global_profile_filing /
     // (CLOCKS_PER_SEC / 1000) ) << "\n";
@@ -180,15 +162,11 @@ int main(int argc, char** argv) {
     // (CLOCKS_PER_SEC / 1000) ) << "\n";
     // clock_t all_time = (now() - prof_start) - global_profile_decoding -
     // global_profile_filing;
-
     // double all_time = (now() - prof_start) - global_profile_decoding -
     // global_profile_filing;
-
     profiler.end(STARTUP);
     profiler.tell();
-
     cerr << "Done\n";
-
     return ret;
 }
 

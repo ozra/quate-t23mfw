@@ -31,6 +31,7 @@ using namespace t23m;
 
 */
 
+/*
 auto get_instrument(String broker_name, String security_symbol, QuantTime time)
     -> Instrument {
     // switch(utils::string_to_base26_int(broker_name)) {
@@ -47,6 +48,8 @@ auto get_instrument(String broker_name, String security_symbol, QuantTime time)
     }
     return Instrument();    // To satisfy compiler
 }
+*/
+
 }
 
 

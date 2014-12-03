@@ -31,7 +31,7 @@ namespace fs = boost::filesystem;
 
 #include "rfx11_types.hh"
 
-#include "mutatable_buffer.hh"
+#include "MutatingBuffer.hh"
 
 /*
  *
@@ -58,12 +58,12 @@ namespace fs = boost::filesystem;
 enum enum_load_result { SUCCESS = 0, EMPTY_FILE = 1, MISSING_FILE = 2 };
 
 template <typename T>
-enum_load_result loadFileToExistingBuffer(cAp p_filename,
-                                          mutatable_buffer<T>& buffer);
+enum_load_result load_file_into_existing_buffer(cAp p_filename,
+                                          MutatingBuffer<T>& buffer);
 
 /*
 template <typename T>
-T *loadFileToExistingBuffer(
+T *load_file_into_existing_buffer(
     cApfilename,
     T           *buffer,
     size_t      *buf_byte_size,
@@ -143,13 +143,11 @@ class FilePrefetcher {
 */
 
 template <typename T>
-enum_load_result loadFileToExistingBuffer(cAp p_filename,
-                                          mutatable_buffer<T>& buffer) {
+enum_load_result load_file_into_existing_buffer(cAp p_filename,
+                                          MutatingBuffer<T>& buffer) {
     fs::path filename(p_filename);
-    profiler.start(LOADING_FILES);
 
     if (fs::exists(filename) == false || fs::is_regular(filename) == false) {
-        profiler.end(LOADING_FILES);
         return MISSING_FILE;
     }
 
@@ -158,15 +156,14 @@ enum_load_result loadFileToExistingBuffer(cAp p_filename,
     if (new_size == 0) {
         buffer.resize(0);
 #ifdef IS_DEEPBUG
-        cerr << "loadFileToExistingBuffer: returns cause file was empty!"
+        cerr << "load_file_into_existing_buffer: returns cause file was empty!"
              << "\n";
 #endif
-        profiler.end(LOADING_FILES);
         return EMPTY_FILE;
     }
 
 #ifdef IS_DEEPBUG
-    cerr << "loadFileToExistingBuffer(\"" << p_filename
+    cerr << "load_file_into_existing_buffer(\"" << p_filename
          << "\") - file's size: " << new_size
          << " vs existing buf size: " << buffer.size() << ""
          << "\n";
@@ -181,7 +178,7 @@ enum_load_result loadFileToExistingBuffer(cAp p_filename,
     //  | fs::ifstream::ate );
     fin.sync_with_stdio(false);
     if (fin) {
-        _DPn("loadFileToExistingBuffer: reads file in to buffer");
+        _DPn("load_file_into_existing_buffer: reads file in to buffer");
 
         // use this instead??  ->
         // new_size = fin.tellg();
@@ -196,64 +193,9 @@ enum_load_result loadFileToExistingBuffer(cAp p_filename,
 
         }
     */
-    profiler.end(LOADING_FILES);
 
     return SUCCESS;
 }
 
-/*
-template <typename T>
-mutatable_buffer<T> && loadFileToExistingBuffer(
-    cApp_filename,
-    mutatable_buffer<T>     &buffer,
-    int                     *status
-) {
-    //T *buffer = 0;
-    fs::path filename( p_filename );
-    profiler.start( LOADING_FILES );
-
-    if ( fs::exists( filename ) && fs::is_regular( filename ) ) {
-        size_t new_size = fs::file_size( filename );
-
-        if ( new_size == 0 ) {
-            *status = 0;
-            // *status = -1; - should be this, no?
-
-            profiler.end( LOADING_FILES );
-            return std::move( mutatable_buffer<T>( true ));
-        }
-
-        #ifdef IS_DEEPBUG
-        cerr << "loadFileToExistingBuffer: file's size: " << new_size << " vs
-existing buf size: " << buffer.size() << "" << "\n";
-        #endif
-
-        buffer.allocate( new_size );
-
-        //std::ifstream fin(filename, std::ifstream::binary);
-        fs::ifstream fin( filename, fs::ifstream::binary );
-        if ( fin ) {
-            #ifdef IS_DEEPBUG
-            cerr << "loadFileToExistingBuffer: reads file in to buffer\n";
-            #endif
-            fin.read( reinterpret_cast<char*>(buffer.front()), buffer.size() );
-            fin.close();
-        }
-        *status = 0;
-        profiler.end( LOADING_FILES );
-
-        return std::move( buffer );
-        //return { buffer };
-
-    } else {
-        //buffer = 0;
-        // *buf_byte_size = 0;
-        *status = -2;
-        profiler.end( LOADING_FILES );
-        return std::move( mutatable_buffer<T>( true ));
-    }
-
-}
-*/
 
 #endif

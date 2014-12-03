@@ -49,7 +49,7 @@ struct QuantTickBaseFlags {
 
 /*
 inline std::stringbuf & operator<< ( std::stringbuf &s, Time_T &t ) {
-    s << boost::posix_time::to_iso_extended_string( t ).c_str();
+    string << boost::posix_time::to_iso_extended_string( t ).c_str();
     return s;
 }
 */
@@ -76,7 +76,7 @@ class QuantTickBase {
     {}
     //~QuantTickBase () {};
 
-    inline bool isGhostTick () {
+    inline bool isGhostTick () const {
         return ask_volume == 0 && bid_volume == 0;  //
     }
 

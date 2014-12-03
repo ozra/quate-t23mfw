@@ -58,10 +58,11 @@
 #include "rfx11_types.hh"
 
 #include <iostream>
+using std::cerr;
 #include <cassert>
+
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-using std::cerr;
 
 namespace pxt = boost::posix_time;
 namespace dt = boost::gregorian;
@@ -268,8 +269,8 @@ typedef QuantTimeStamp<NANOS, uint64_t> TsNs;
 
 /* *TODO* */
 
-int day_of_week(int d, int m, int y) {
-    static int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+N day_of_week(N d, N m, N y) {
+    static N t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
     y -= m < 3;
     return (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
 }

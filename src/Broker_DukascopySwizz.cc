@@ -15,23 +15,37 @@
  *
  */
 
+#include "rfx11_types.hh"
+
+#include "QuantBroker.hh"
 #include "QuantInstrument.hh"
 
 #include "QuantBase.hh" // Move QuantTime to QuantTime.hh - include that from base..
 
 namespace t23m {
-namespace DUKASCOPY {
+// namespace DUKASCOPY {
 
 using namespace t23m;
 
-auto get_dukascopy_instrument(String symbol, QuantTime time) -> Instrument;
-}
+class DukascopyGnrlBroker : BrokerAbstract {
+   public:
+    // *TODO* - temp, for reference only for napkin calcs
+    static const N TRADED_SYMBOLS = 86;
+
+    auto get_instrument(cA* symbol, QuantTime time) -> Instrument override;
+};
+
+class DukascopyEurope : DukascopyGnrlBroker {
+   public:
+    // auto get_instrument(cA* symbol, QuantTime time) -> Instrument final;
+};
+//}
 }
 
 #endif
 
 namespace t23m {
-namespace DUKASCOPY {
+// namespace DUKASCOPY {
 
 const char* const traded_symbols[] = {
     "AUDUSD",      "EURUSD",    "GBPUSD",        "NZDUSD",       "USDCAD",
@@ -54,33 +68,17 @@ const char* const traded_symbols[] = {
     "CHEIDXCHF"
 };
 
+auto DukascopyGnrlBroker::get_instrument(cA* symbol, QuantTime time)
+    -> Instrument {
+    Instrument i;
+
+    return i;
+}
+
 //! Compose an object containing both static and time dependent data for a
 // security
 /** Since several factors of a security may change with time - daily, weekly or
  * non periodially for different reasons - this is a necessity.
 */
-
-/*
-PERHAPS:
-
-class DukascopyGnrlBroker : Broker {
-    getInstrument(String symbol, QuantTime time) override;
-
-
-};
-
-class DukascopyEurope : DukascopyGnrlBroker {
-    getInstrument(String symbol, QuantTime time) final;
-
-
-};
-
-*/
-
-auto get_dukascopy_instrument(String symbol, QuantTime time) -> Instrument {
-    Instrument instrument;
-
-    return instrument;
-}
-}
+//}
 }

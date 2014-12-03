@@ -1,0 +1,72 @@
+study(title="ROC strategy", shorttitle="ROCSTRAT")
+source = (close+hlc3)/2
+length = input(14, minval=1)
+debug_plots = input(false, "Debug plots?")
+
+roc = 100 * (source - source[length]) / source[length]
+roc_d = 100 * (source - source[1]) / source[1]
+//roc2 == roc == sum(roc_d, length) == sma(roc_d, length) * length
+roc2_raw = alma(roc_d, length, 0.85, 6) * length * 0.681
+roc2_raw_d = sign(roc2_raw - roc2_raw[1])
+roc2 = roc2_raw_d != roc2_raw_d[1] ? (roc2_raw + roc2_raw[1]) / 2 : roc2_raw
+
+//plot(roc, color=blue, title="ROC")
+//plot(roc, color=blue, title="ROC", style=histogram)
+plot(debug_plots ? roc2 : na, color=red, title="ROC2")
+plot(debug_plots ? roc2 : na, color=red, title="ROC2", style=histogram, transp=70)
+//plot((roc+roc2)/2, color=green, title="ROC2", style=line)
+
+used_roc = roc2
+
+base_threshold_len = 400
+back_ratio = 0.8
+back_len = 10
+dynamic_thresh_ratio = 0.4
+
+//highest_since_zero(s, h) =>
+//    return ( s <= 0 ? h :
+//            s > h ? highest_since_zero(s[1], s[0]) :
+//            s <= h ? highest_since_zero(s[1],h) :
+//            0//)
+
+dynamic_thresh =  dynamic_thresh_ratio * ema(highest(abs(used_roc), base_threshold_len), base_threshold_len)
+unit = dynamic_thresh * 0.1
+
+plot(debug_plots ? dynamic_thresh : na)
+plot(debug_plots ? -dynamic_thresh : na)
+plot(debug_plots ? unit/2 : na)
+plot(debug_plots ? -unit/2 : na)
+
+used_d = used_roc - used_roc[1]
+
+peak_u = used_roc > 0 ? highest(used_roc, back_len) : 0//highest_since_zero(used_roc, 0) : 0 // highest(used_roc, barssince(used_roc <= 0)) : 0
+peak_d = used_roc < 0 ? lowest(used_roc, back_len) : 0
+
+common_criteria(s, i) => abs(s) > unit / 3 and abs(s[i]) > unit / 3 and sign(s) != sign(s[i]) and abs(s)+abs(s[i]) > unit
+
+bs = bs[1] != 0 ? 0 :
+    used_d > 0 and common_criteria(used_d, 1) ? 1 :
+    used_d < 0 and common_criteria(used_d, 1) ? -1 :
+    used_d > 0 and common_criteria(used_d, 2) ? 1 :
+    used_d < 0 and common_criteria(used_d, 2) ? -1 :
+
+//    used_d > unit and used_d[1] < -unit/3 ? 1 :
+//    used_d < -unit and used_d[1] > unit/3 ? -1 :
+//    used_d > unit/3 and used_d[1] < -unit ? 1 :
+//    used_d < -unit/3 and used_d[1] > unit ? -1 :
+//    used_d > unit and used_roc-used_roc[2] < -unit ? 1 :
+//    used_d < -unit and used_roc-used_roc[2] > unit/3 ? -1 :
+
+    //peak_u > dynamic_thresh and used_roc < peak_u * back_ratio and used_roc < used_roc[1] ? -1 :
+    //peak_d < -dynamic_thresh and used_roc > peak_d * back_ratio and used_roc > used_roc[1] ? 1 :
+    0
+
+bsclr = bs == 1 ? green : bs == -1 ? red : white
+
+barcolor(bs ? bsclr : na)
+bgcolor(bsclr)
+plotarrow(bs < 0 ? -1 : 0, offset=0) //-h_right-1)
+plotarrow(bs > 0 ? 1 : 0, offset=0) //-h_right-1)
+plot(bs == 0 ? na : close, color = bsclr, style=line, linewidth=3)
+
+plot(debug_plots ? 0 : na, title="Zero Line")

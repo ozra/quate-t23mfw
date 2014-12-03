@@ -12,6 +12,15 @@
 namespace t23m {
 using namespace t23m;
 
+enum OrderStatus {
+    undef = 0,
+    open = 1,
+    filled = 2,
+    canceled = 3,
+    partially_filled = 4,
+    partially_canceled = 5
+};
+
 typedef int OrderId;
 typedef String OrderForeignId;
 // typedef int     OrderType;
@@ -19,22 +28,18 @@ typedef String OrderForeignId;
 
 // typedef uint64_t SecurityNumberCode;
 
-class BrokerAbstract {
-    BrokerAbstract();
-    //~BrokerAbstract ();
-};
 
 struct CostModel {
     bool free_market_terms = false;
     bool contractual_position_based = true;
-    QuantReal fee_percentage = 0;
-    QuantReal fee_fixed = 0;
+    R fee_percentage = 0;
+    R fee_fixed = 0;
     bool pay_spread = true;
 
     // *TODO* we need leverage on every symbol (?) or just make more costmodels,
     // ALSO varies with time!!!
     // "inherit"
-    QuantReal leverage = 0;
+    N leverage = 0;
 };
 
 // Singleton -
@@ -130,6 +135,89 @@ class Transaction {
     // QuantReal           security_change;
 };
 
+
+// Represents an account on a broker
+class BrokerAccount {
+   public:
+    BrokerAccount();
+    ~BrokerAccount();
+
+    R get_balance(CurrencyNumberCode currency); //  = primary_currency_);
+    R get_equity();
+
+    // // //
+    string broker_id;
+    string user;
+    string pass;
+
+    vector<Order> open_orders_;
+    vector<Order> historical_orders_;
+    vector<Transaction> transactions_;
+
+    CurrencyNumberCode primary_currency_;
+
+    // *TODO* proper datatype...
+    //std::map<CurrencyNumberCode, R> balances_;
+    R balances_[TOTAL_SYMBOL_COUNT];
+
+    // QuantReal                           positioned_funds;
+    // QuantReal                           positions_value;
+};
+
+class TradeDeskAbstract {
+   public:
+    TradeDeskAbstract ();
+    TradeDeskAbstract (string broker, string user, string pass);
+    // virtual ~TradeDeskAbstract () = 0;
+
+    virtual OrderId testing_buy(R qty) = 0;
+    virtual OrderId testing_sell(R qty) = 0;
+    virtual bool testing_close(OrderId order_id) = 0;
+
+    virtual OrderId placeOrder(OrderType order_type, R price, R qty,
+                               QuantTime deadline) = 0;
+
+    virtual OrderId buyMarket(R qty, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId sellMarket(R qty, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId buyLimit(R qty, R price, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId sellLimit(R qty, R price, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId buyStop(R qty, R price, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId sellStop(R qty, R price, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId buyTrailStop(R qty, R distance, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId sellTrailStop(R qty, R distance, N slippage, N magic_number_id = 0) = 0;
+
+    virtual OrderStatus orderStatus(OrderId order_id) = 0;
+    virtual bool cancelOrder(OrderId order_id) = 0;
+    virtual vector<OrderId>* getOpenOrders() = 0;
+
+    R get_balance();
+    R get_usable_funds();
+};
+
+class TradeDeskSimulator : public TradeDeskAbstract {
+   public:
+    virtual OrderId testing_buy(QuantReal qty);
+    virtual OrderId testing_sell(QuantReal qty);
+    virtual bool testing_close(OrderId order_id);
+
+    N level_of_pessimism = 3; // How hard we are on criterions on the ticks to
+                                // decide if a level would reach a deal or not -
+                                // 2014-10-21/ORC
+    R find_worst_price_time_window =
+        500; // How long past the order do we look for a worst price?
+
+    R fee_percentage_taker;
+    R fee_percentage_maker;
+    R fee_fixed;
+    bool pay_the_spread;
+};
+}
+
+#endif
+
+namespace t23m {
+
+
 Transaction::Transaction(TransactionType type, CurrencyNumberCode base_currency,
                          QuantReal base_currency_change,
                          SecurityNumberCode instrument,
@@ -140,85 +228,6 @@ Transaction::Transaction(TransactionType type, CurrencyNumberCode base_currency,
     , base_currency_change{ base_currency_change }
     , instrument_change{ instrument_change } {}
 
-// Represents an account on a broker
-class BrokerAccount {
-   public:
-    BrokerAccount();
-    ~BrokerAccount();
-
-    QuantReal get_balance(CurrencyNumberCode currency); //  = primary_currency_);
-    QuantReal get_equity();
-
-    // // //
-    vector<Order> open_orders_;
-    vector<Order> orders_;
-    vector<Transaction> transactions_;
-
-    CurrencyNumberCode primary_currency_;
-    // *TODO* proper datatype...
-    std::map<CurrencyNumberCode, QuantDouble> balances_;
-
-    // QuantReal                           positioned_funds;
-    // QuantReal                           positions_value;
-};
-
-class TradeDeskAbstract {
-   public:
-    // TradeDeskAbstract ();
-    // virtual ~TradeDeskAbstract () = 0;
-
-    virtual OrderId testing_buy(QuantReal qty) = 0;
-    virtual OrderId testing_sell(QuantReal qty) = 0;
-    virtual bool testing_close(OrderId order_id) = 0;
-
-    virtual OrderId placeOrder(OrderType order_type, double price, double qty,
-                               QuantTime deadline) = 0;
-
-    virtual OrderId buyMarket() = 0;
-    virtual OrderId sellMarket() = 0;
-    virtual OrderId buyLimit() = 0;
-    virtual OrderId sellLimit() = 0;
-    virtual OrderId buyStop() = 0;
-    virtual OrderId sellStop() = 0;
-    virtual OrderId buyTrailStop() = 0;
-    virtual OrderId sellTrailStop() = 0;
-
-    virtual int orderStatus(OrderId order_id) = 0;
-    virtual bool cancelOrder(OrderId order_id) = 0;
-    virtual vector<OrderId>* getOpenOrders() = 0;
-
-    QuantReal get_balance();
-    QuantReal get_usable_funds();
-
-    // // //
-    vector<Transaction> transactions;
-    QuantReal funds;
-    QuantReal positioned_funds;
-    QuantReal positions_value;
-};
-
-class TradeDeskSimulator : public TradeDeskAbstract {
-   public:
-    virtual OrderId testing_buy(QuantReal qty);
-    virtual OrderId testing_sell(QuantReal qty);
-    virtual bool testing_close(OrderId order_id);
-
-    int level_of_pessimism = 3; // How hard we are on criterions on the ticks to
-                                // decide if a level would reach a deal or not -
-                                // 2014-10-21/ORC
-    QuantDouble find_worst_price_time_window =
-        500; // How long past the order do we look for a worst price?
-
-    QuantDouble fee_percentage_taker;
-    QuantDouble fee_percentage_maker;
-    QuantDouble fee_fixed;
-    bool pay_the_spread;
-};
-}
-
-#endif
-
-namespace t23m {
 
 QuantReal calculate_the_actual_buy_price() {
     // Just fucking bogus to remind of what to do - *TODO*

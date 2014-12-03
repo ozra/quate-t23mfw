@@ -13,7 +13,9 @@ namespace pxt = boost::posix_time;
 namespace dt = boost::gregorian;
 */
 
-#include <stdint.h>
+//#include <stdint.h>
+#include <cstdint>
+#include <cstddef>
 //#include <types.h>
 
 // Integers
@@ -49,6 +51,7 @@ typedef void            nothing, V, O;
 typedef void *          Vp;
 typedef char *          Ap;
 typedef const char *    cAp; //, cAS;
+typedef const char      cA; //, cAS;
 typedef byte *          Bp;
 
 // Complex fundamental datatypes - string, time, etc.
@@ -60,9 +63,9 @@ typedef std::string     string, S;
 // Domain Specifics
 //
 
-typedef     int         arbitrary_numeric_code;
-typedef     NN          ncount;
-typedef     size_t      dsize, nsize;
-typedef     off_t       doffs, dpos, npos, nix;
+typedef     int         arbitrary_return_code;
+typedef     NN          ncount, Ncount;
+typedef     size_t      dsize, nsize, Nsize;
+typedef     off_t       doffs, dpos, npos, nix, Noffs, Npos, Nix;
 
 #endif

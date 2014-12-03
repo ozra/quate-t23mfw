@@ -44,7 +44,9 @@ class QuantBuffer : public QuantBufferAbstract {
 
     inline void set(T_B val) {
         assert(size > 0);
+#ifdef IS_DEBUG
         assert(datum_value_has_been_set == false);
+#endif
 
         *(reinterpret_cast<T_B*>(head_ptr)) = val;
 
@@ -68,12 +70,17 @@ class QuantBuffer : public QuantBufferAbstract {
     //};
 
     inline operator T_B&() {
-        return *(castTB(head_ptr));
+        return *(reinterpret_cast<T_B*>(head_ptr));
     };
 
-    inline operator T_B() const {
+    inline operator const T_B() const {
         // return *( (~) ( head_ptr ) );
-        return *(castTB(head_ptr));
+        return *(reinterpret_cast<T_B*>(head_ptr));
+    };
+
+    inline const T_B& last_as_const() const {
+        // return *( (~) ( head_ptr ) );
+        return *(reinterpret_cast<T_B*>(head_ptr));
     };
 
     // constexpr typename _get_type() { return T_B };

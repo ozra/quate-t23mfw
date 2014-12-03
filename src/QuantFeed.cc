@@ -20,7 +20,7 @@
 // template <class SLOT_T, bool USE_LOOKBACK >
 template <class SLOT_T> class QuantFeed : public QuantFeedAbstract {
    public:
-    QuantFeed(S broker_id, S symbol_id, Z lookback = 0,
+    QuantFeed(S broker_id, string symbol_id, Z lookback = 0,
               QuantMultiKeeperJar* the_jar = global_actives.active_jar)
         : QuantFeedAbstract(broker_id, symbol_id, lookback, the_jar) {}
 

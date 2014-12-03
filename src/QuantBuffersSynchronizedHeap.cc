@@ -21,7 +21,7 @@ class QuantBufferSynchronizedHeap {
     void add(QuantBufferAbstract& buf);
     void add(QuantBufferAbstract& buf, size_t size_capacity);
 
-    arbitrary_numeric_code allocate(); // 0 = ok, else error code
+    arbitrary_return_code allocate(); // 0 = ok, else error code
     void advance();
 
 #ifdef IS_DEBUG
@@ -82,7 +82,7 @@ void QuantBufferSynchronizedHeap::add(QuantBufferAbstract& buf,
     buf.capacity = size_capacity;
 }
 
-arbitrary_numeric_code QuantBufferSynchronizedHeap::allocate() {
+arbitrary_return_code QuantBufferSynchronizedHeap::allocate() {
     cerr << "QuantBufferSynchronizedHeap::allocate()\n";
 
     size_t buf_byte_size;

@@ -15,5 +15,6 @@
 #include "QuantFeed.hh"
 #include "QuantPeriodization.hh"
 #include "QuantStudyContextBase.hh"
+#include "QuantTradeDesk.hh"
 
 #endif

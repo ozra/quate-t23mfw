@@ -21,8 +21,10 @@ class ReversedCircularStructBuffer {
     ~ReversedCircularStructBuffer() { delete[] buffer; }
 
     inline operator T&() { return *head_ptr; }
+    //inline operator const T&() { return *head_ptr; }
 
     inline T& operator()() { return *head_ptr; }
+    inline const T& last_as_const() const { return *head_ptr; } 
 
     inline void set(T value) { *head_ptr = value; }
 

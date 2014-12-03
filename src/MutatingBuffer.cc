@@ -1,4 +1,4 @@
-#include "mutatable_buffer.hh"
+#include "MutatingBuffer.hh"
 #ifdef INTERFACE
 /**
 * Created:  2014-11-07
@@ -19,58 +19,58 @@
 #include <cstring> // std::memcpy
 #include <iostream>
 
-template <typename T> class mutatable_buffer {
+template <typename T> class MutatingBuffer {
    public:
-    mutatable_buffer(size_t minimum_size = 0, size_t fixed_margin = 0)
+    MutatingBuffer(size_t minimum_size = 0, size_t fixed_margin = 0)
         : fixed_margin_{ fixed_margin }
         , minimum_size_{ minimum_size } {
-        cerr << "mutatable_buffer::constructor - A BONA FIDE CONSTRUCTION\n";
+        _Dn( "MutatingBuffer::constructor - A BONA FIDE CONSTRUCTION\n");
 
         if (minimum_size) {
             reserve(minimum_size, false);
         }
     }
 
-    mutatable_buffer(L is_just_a_reference)
+    MutatingBuffer(L is_just_a_reference)
         : is_just_a_reference_{ is_just_a_reference } {
-        cerr << "mutatable_buffer::constructor - JUST AN EMPTY REFERENCE\n";
+        _Dn( "MutatingBuffer::constructor - JUST AN EMPTY REFERENCE\n");
     }
 
-    mutatable_buffer(mutatable_buffer<T>& other)
+    MutatingBuffer(MutatingBuffer<T>& other)
         : buffer_front_{ other._buffer_front_ }
         , capacity_{ other.size_ }
         , size_{ other.size_ }
         , fixed_margin_{ 0 }
         , minimum_size_{ 0 }
         , is_just_a_reference_{ true } {
-        cerr << "mutatable_buffer::COPY constructor - A CLONED REFERENCE\n";
-        cerr << "buffer_ = " << (O*)buffer_front_ << "\n"
+        _Dn( "MutatingBuffer::COPY constructor - A CLONED REFERENCE\n");
+        _Dn( "buffer_ = " << (O*)buffer_front_ << "\n"
              << "capacity_ = " << capacity_ << "\n"
              << "size_ = " << size_ << "\n"
              << "is_just_a_reference_ = " << is_just_a_reference_ << "\n"
-             << "\n";
+             << "\n");
     }
 
-    mutatable_buffer(mutatable_buffer<T>&& other)
+    MutatingBuffer(MutatingBuffer<T>&& other)
         : buffer_front_{ other.buffer_front_ }
         , capacity_{ other.size_ }
         , size_{ other.size_ }
         , fixed_margin_{ 0 }
         , is_just_a_reference_{ true } {
-        cerr << "mutatable_buffer::MOVE constructor - A CLONED REFERENCE\n";
-        cerr << "buffer_ = " << (O*)buffer_front_ << "\n"
+        _Dn( "MutatingBuffer::MOVE constructor - A CLONED REFERENCE\n");
+        _Dn( "buffer_ = " << (O*)buffer_front_ << "\n"
              << "capacity_ = " << capacity_ << "\n"
              << "size_ = " << size_ << "\n"
              << "is_just_a_reference_ = " << is_just_a_reference_ << "\n"
-             << "\n";
+             << "\n");
     }
 
-    ~mutatable_buffer() {
-        cerr << "\n\nmutatable_buffer::DESTRUCTOR: clean_uses = " << clean_uses_
-             << " mutations = " << mutations_ << "\n";
+    ~MutatingBuffer() {
+        _Dn( "\n\nMutatingBuffer::DESTRUCTOR: clean_uses = " << clean_uses_
+             << " mutations = " << mutations_ << "\n");
         if (is_just_a_reference_ == false) {
-            cerr << "Is not a reference only, we delete "
-                 << (O*)buffer_front_;
+            _Dn( "Is not a reference only, we delete "
+                 << (O*)buffer_front_);
             delete[] buffer_front_;
         }
     }
@@ -84,7 +84,7 @@ template <typename T> class mutatable_buffer {
     }
 
     T* reserve(NN size, L maintain_current_data = true) {
-        cerr << "mutatable_buffer::reserve" << size << "\n";
+        _Dn( "MutatingBuffer::reserve" << size << "\n");
         assert(is_just_a_reference_ == false);
 
         if (size <= capacity_) {
@@ -103,8 +103,8 @@ template <typename T> class mutatable_buffer {
             // ) while still being clear
             // in code.. - 2014-11-07 /
             // Oscar Campbell
-            cerr << "mutation(): new size is " << size << " new capacity is "
-                 << capacity_ << "\n";
+            _Dn( "mutation(): new size is " << size << " new capacity is "
+                 << capacity_ << "\n");
 
             T* curr_buf = buffer_front_;
             buffer_front_ = new T[capacity_]; // Allocate with 25% margin and
@@ -130,7 +130,7 @@ template <typename T> class mutatable_buffer {
      *  of a specific buffer length, and consuming it, and automatically
      *  maintaining overflows.
      */
-    inline O set_specified_buffer_size(NN size) {
+    inline void set_specified_buffer_size(NN size) {
         specified_buffer_limit_ = size;
     }
 
@@ -138,8 +138,8 @@ template <typename T> class mutatable_buffer {
         return (buffer_cursor_ >= buffer_end_);
     }
 
-    inline L is_specified_buffer_filled() {
-        _DP("is_specified_buffer_filled() -  size = "
+    inline L is_specification_filled() {
+        _DP("is_specification_filled() -  size = "
             << size_ << " limit = " << specified_buffer_limit_ << "\n");
         return (size_ >= specified_buffer_limit_);
     }
@@ -153,21 +153,21 @@ template <typename T> class mutatable_buffer {
         return buffer_front_;
     }
 
-    inline O shrink_to_fit() {
+    inline void shrink_to_fit() {
         // We simply ignore this and keep the currently allocated amounts..
         return;
     }
 
-    O wipe() { // deliberate free / delete
+    void wipe() { // deliberate free / delete
         ++mutations_;
         delete[] buffer_front_;
         buffer_cursor_ = buffer_front_ = buffer_end_ = buffer_capacity_end_ =
             nullptr;
         capacity_ = size_ = 0;
-        cerr << "mutatable_buffer::wipe(): deliberately!\n";
+        _Dn( "MutatingBuffer::wipe(): deliberately!\n");
     }
 
-    inline O clear() { size_ = 0; }
+    inline void clear() { size_ = 0; }
 
     //! "Rewind the buffer" count T.
     /** Ie: copy what's above count up til buffer size (not capacity) to the
@@ -175,36 +175,34 @@ template <typename T> class mutatable_buffer {
      *  Basically, remove all data that has been handled / consumed and reset
      *  positions to beginning of buffer.
      */
-    O rewind_shuffle(NN count) {
-        cerr << "rewind_shuffle with " << count << " where size is " << size_
-             << "\n";
+    void rewind_shuffle(NN count) {
+        _Dn("rewind_shuffle with " << count << " where size is " << size_);
         assert(count <= size_);
         memmove(buffer_front_, buffer_front_ + count,
                 size_ - count); // We need to use memmove to be really sure.
         size_ = size_ - count;
         buffer_end_ = buffer_front_ + size_;
-        buffer_cursor_ = nullptr;
-        cerr << "size_ after rewind shuffle = " << size_ << "\n";
+        buffer_cursor_ -= count;
+        _Dn( "size_ after rewind shuffle = " << size_);
     }
 
     //! The same as rewind_shuffle ( NN count ) but calculates the count
     //  from the pointer compared to front(). Excluding pointer position!
-    O rewind_shuffle(T* buf_ptr) {
-        cerr << "rewind_shuffle with ptr"
-             << "\n";
+    void rewind_shuffle(T* buf_ptr) {
+        _Dn( "rewind_shuffle with ptr");
         rewind_shuffle((N)(buf_ptr - buffer_front_));
     }
 
     /*
      *  The ++ should be on the iterator ofcourse!
-    inline mutatable_buffer<T> & operator++ () {
+    inline MutatingBuffer<T> & operator++ () {
     */
 
     inline NN size() { return size_; }
 
     inline NN capacity() { return capacity_; }
 
-    inline O push(T val) {
+    inline void push(T val) {
         if (size_ >= capacity_) {
             reserve(
                 size_ + 1,
@@ -213,16 +211,16 @@ template <typename T> class mutatable_buffer {
         acc(val);
     }
 
-    inline O acc(T val) {
+    inline void acc(T val) {
         *buffer_cursor_ = val;
         ++buffer_cursor_;
         ++buffer_end_;
         ++size_;
     }
 
-    inline O reset_write_cursor() { buffer_cursor_ = buffer_end_; }
+    inline void reset_write_cursor() { buffer_cursor_ = buffer_end_; }
 
-    inline O reset_read_cursor() { buffer_cursor_ = buffer_front_; }
+    inline void reset_read_cursor() { buffer_cursor_ = buffer_front_; }
 
 #ifdef IS_DEBUG
     inline T* on_free_leash_for(N expected_count) {
@@ -233,11 +231,11 @@ template <typename T> class mutatable_buffer {
         return buffer_cursor_;
     }
 
-    inline O catch_up_reads(N count) {
-        cerr << "catch_up_reads, with count int\n";
+    inline void catch_up_reads(N count) {
+        _Dn( "catch_up_reads, with count int");
         catch_up_reads(buffer_end_ + count);
     }
-    inline O catch_up_reads(T* buf_ptr) {
+    inline void catch_up_reads(T* buf_ptr) {
 #ifdef IS_DEBUG
         N count = N(buf_ptr - buffer_cursor_);
         //_DPn("catch_up_reads, actual count is "
@@ -254,11 +252,11 @@ template <typename T> class mutatable_buffer {
         buffer_cursor_ = buf_ptr;
     }
 
-    inline O catch_up_writes(NN count) {
-        cerr << "catch_up_writes, with count int\n";
+    inline void catch_up_writes(NN count) {
+        _Dn( "catch_up_writes, with count int");
         catch_up_writes(buffer_end_ + count);
     }
-    inline O catch_up_writes(T* buf_ptr) {
+    inline void catch_up_writes(T* buf_ptr) {
         NN count = (N)(buf_ptr - buffer_cursor_);
 
 #ifdef IS_DEBUG
@@ -282,11 +280,11 @@ template <typename T> class mutatable_buffer {
 #ifdef IS_DEEPBUG
     inline L verify_pointer(T* buf_ptr) {
         if (buf_ptr > buffer_capacity_end_) {
-            cerr << "discrepancy: " << (buf_ptr - buffer_front_)
-                 << " vs capacity: " << capacity_ << "\n";
+            _Dn( "discrepancy: " << (buf_ptr - buffer_front_)
+                 << " vs capacity: " << capacity_);
         }
         if (buf_ptr < buffer_front_) {
-            cerr << "discrepancy: " << (buf_ptr - buffer_front_) << "\n";
+            _Dn( "discrepancy: " << (buf_ptr - buffer_front_) );
         }
 
         assert(buf_ptr <= buffer_capacity_end_);
@@ -366,7 +364,7 @@ template <typename T> class mutatable_buffer {
 };
 
 // Playing with functionalism for aestethics
-template <typename T> inline auto front_of(mutatable_buffer<T>& buf) -> T* {
+template <typename T> inline auto front_of(MutatingBuffer<T>& buf) -> T* {
     return buf.begin();
 }
 

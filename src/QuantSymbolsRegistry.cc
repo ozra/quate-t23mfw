@@ -6,6 +6,7 @@
 * Licence:  MIT (Expat) - http://opensource.org/licenses/mit-license.html
 **/
 
+#include "rfx11_types.hh"
 #include <string>
 
 namespace t23m {
@@ -34,10 +35,14 @@ const char* const symbol_names[] = {
     "CHEIDXCHF"
 };
 
-typedef String SecuritySymbol;  // "ZARJPY", "XAGUSD", etc.
-typedef String CurrencySymbol;  // "EUR", "XAG", "SEK", etc.
+const N TOTAL_SYMBOL_COUNT = sizeof(symbol_names);
+
+
+typedef String SecuritySymbol; // "ZARJPY", "XAGUSD", etc.
+typedef String CurrencySymbol; // "EUR", "XAG", "SEK", etc.
 
 typedef enum {
+    NIL = 0,
     AUDUSD = 1,
     EURUSD,
     GBPUSD,
@@ -126,6 +131,20 @@ typedef enum {
     CHEIDXCHF
 } SecurityNumberCode,
     CurrencyNumberCode;
+
+SecurityNumberCode get_symbol_number_code(String symbol);
 }
 
 #endif
+
+namespace t23m {
+
+SecurityNumberCode get_symbol_number_code(String symbol) {
+    for (auto i = 0; i < sizeof(symbol_names); ++i) {
+        if (symbol_names[i] == symbol) {
+            return SecurityNumberCode(i);
+        }
+    }
+    return NIL;
+}
+}

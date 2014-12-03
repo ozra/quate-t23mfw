@@ -1,4 +1,4 @@
-#include "QuantSequentialData_DukascopyTicks.hh"
+#include "SQDI_Ticks_Dukascopy.hh"
 #ifdef INTERFACE
 /**
 * Created:  2014-09-18
@@ -11,11 +11,11 @@
 #include "QuantBasic_DESIGN_CHOICES.hh"
 
 #include "QuantTime.hh"
-#include "QuantSequentialData_TradeTicksAbstract.hh"
+#include "SQDI_Ticks_Abstract.hh"
 #include "QuantSequentialDataPrefetcher.hh"
 
 #include "MutatingString.hh"
-#include "mutatable_buffer.hh"
+#include "MutatingBuffer.hh"
 
 //#include <boost/posix_time.hpp>
 #include <algorithm>
@@ -25,15 +25,15 @@
 #include "ninety47/dukascopy/defs.h"
 #include "ninety47/dukascopy/lzma.h"
 
-class QuantSequentialData_DukascopyTicks
-    : public QuantSequentialData_TradeTicksAbstract {
+class SQDI_Ticks_Dukascopy
+    : public SQDI_Ticks_Abstract {
    public:
-    QuantSequentialData_DukascopyTicks()
+    SQDI_Ticks_Dukascopy()
         : raw_buffer_((size_t)5000) //,
         // decode_buffer ( (size_t) 10000 )
         {};
 
-    ~QuantSequentialData_DukascopyTicks() {
+    ~SQDI_Ticks_Dukascopy() {
         // delete[] file_buffer;
         delete[] decode_buffer_ptr;
     };
@@ -43,7 +43,7 @@ class QuantSequentialData_DukascopyTicks
     bool readTick(QuantTick& tick) final;
 
    private:
-    arbitrary_numeric_code loadNextChunk();
+    arbitrary_return_code loadNextChunk();
 
     const N session_break_duration_in_chunk_units = 24 * 2;
     std::string symbol;
@@ -59,8 +59,8 @@ class QuantSequentialData_DukascopyTicks
     byte* buf_ptr = nullptr;
     // ofs_t           buf_pos = 0;
 
-    mutatable_buffer<B> raw_buffer_;
-    // mutatable_buffer<uint8_t>   decode_buffer;
+    MutatingBuffer<B> raw_buffer_;
+    // MutatingBuffer<uint8_t>   decode_buffer;
     Bp decode_buffer_ptr = nullptr;
 
     MutatingString filename_mutator;
@@ -70,7 +70,7 @@ class QuantSequentialData_DukascopyTicks
 
 #include "QuantProfiling.hh"
 
-bool QuantSequentialData_DukascopyTicks::init(std::string p_broker_id,
+bool SQDI_Ticks_Dukascopy::init(std::string p_broker_id,
                                               std::string p_symbol) {
     symbol = p_symbol;
     point_decimals =
@@ -79,7 +79,7 @@ bool QuantSequentialData_DukascopyTicks::init(std::string p_broker_id,
     chunk_unit_duration_ = pxt::hours(1);
     reset_time_pos();
 
-    _DP("QuantSequentialData_DukascopyTicks::init():"
+    _DP("SQDI_Ticks_Dukascopy::init():"
         << "\n"
         << "start_date: " << start_date_ << "\n"
         << "chunk_time_pos_: " << chunk_time_pos_ << "\n");
@@ -95,7 +95,7 @@ bool QuantSequentialData_DukascopyTicks::init(std::string p_broker_id,
     return true; // error *TODO* *IMPL*
 }
 
-void QuantSequentialData_DukascopyTicks::reset_time_pos() {
+void SQDI_Ticks_Dukascopy::reset_time_pos() {
     chunk_time_pos_ =
         qts::get_prior_aligned_ts(start_date_, chunk_unit_duration_) -
         chunk_unit_duration_; // makeTime( "2014-01-07 00:00:00.000" );
@@ -119,10 +119,9 @@ Str fuglyIntToStr( int n, int sizing ) {
 }
 */
 
-arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
+arbitrary_return_code SQDI_Ticks_Dukascopy::loadNextChunk() {
     //#ifdef IS_DEEPBUG
-    cerr << "loadNextChunk()"
-         << "\n";
+    _Dn("loadNextChunk()");
     //#endif
 
     // pxt::ptime chunk_epoch(boost) = makeTime( "2014-01-07 00:00:00.000" ); //
@@ -133,25 +132,19 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
 
     chunk_time_pos_ += chunk_unit_duration_;
 
-#ifdef IS_DEEPBUG
-    cerr << "chunk_time_pos = " << to_iso_string(chunk_time_pos_) << "\n";
-#endif
+    _DPn("chunk_time_pos = " << to_iso_string(chunk_time_pos_) << "\n");
 
     dt::date dts(chunk_time_pos_.date());
     dt::greg_year_month_day ymd = dts.year_month_day();
 
-#ifdef IS_DEEPBUG
-    cerr << "date is " << to_iso_string(dts) << "\n";
-#endif
+    _DPn("date is " << to_iso_string(dts) << "\n");
 
     const char* fname =
         (filename_mutator << ymd.year << (ymd.month - 1) << ymd.day
                           << chunk_time_pos_.time_of_day().hours())
             .mutated_str();
 
-#ifdef IS_DEEPBUG
-    cerr << "The data chunk filename is " << fname << "\n";
-#endif
+    _DPn("The data chunk filename is " << fname << "\n");
 
 #ifdef DESIGN_CHOICE__CLEAR_FILING_BUFFERS
     raw_buffer_.wipe();
@@ -165,12 +158,14 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
     uint8_t *ret_buffer     = raw_buffer_;
     */
 
-    // mutatable_buffer<uint8_t> ret_buffer;
+    // MutatingBuffer<uint8_t> ret_buffer;
 
-    cerr << "calls loadFileToExistingBuffer\n";
-    // mutatable_buffer<uint8_t> ret_buffer = loadFileToExistingBuffer(
-    enum_load_result ret = loadFileToExistingBuffer(fname, raw_buffer_);
-    cerr << "back from call to loadFileToExistingBuffer\n";
+    _DPn("calls load_file_into_existing_buffer");
+    // MutatingBuffer<uint8_t> ret_buffer = load_file_into_existing_buffer(
+    profiler.start(LOADING_FILES_DUKAS);
+    enum_load_result ret = load_file_into_existing_buffer(fname, raw_buffer_);
+    profiler.end(LOADING_FILES_DUKAS);
+    _DPn("back from call to load_file_into_existing_buffer");
 
     // if ( ret_buffer == nullptr ) {
     //    byte_buffer_end = byte_buffer = nullptr;
@@ -185,8 +180,7 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
     //     do_other_stuff()
 
     if (ret == MISSING_FILE) {
-        cerr << "No file found to read - shit fucked up"
-             << "\n";
+        _DPn("No file found to read - shit fucked up");
 #ifdef IS_DEEPBUG
         throw 474747;
 #endif
@@ -194,16 +188,15 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
 
     } else if (ret == EMPTY_FILE) {
 #ifdef IS_DEEPBUG
-        cerr << "File was empty - expectable"
-             << "\n";
+        _DPn("File was empty - expectable");
 #endif
         return -1;
     }
 // else status == 0 som det ska vara...
 
 #ifdef IS_DEEPBUG
-    cerr << "BEFORE decoding byte size is: " << raw_buffer_.size() << "ptr is "
-         << (void*)raw_buffer_.front() << "\n";
+    _Dn("BEFORE decoding byte size is: " << raw_buffer_.size() << "ptr is "
+         << (void*)raw_buffer_.front() << "\n");
     cerrbug_a_buffer(raw_buffer_.front(), raw_buffer_.size());
 
 #endif
@@ -216,26 +209,19 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
     // misses small buffers ( leading to devastating results )
     if (true) { // n47::lzma::bufferIsLZMA(ret_buffer, ret_buffer.size()) ) {
 // decompress
-#ifdef IS_DEEPBUG
-        cerr << "Is LZMA buffer"
-             << "\n";
-#endif
+        _DPn("Is LZMA buffer");
 
         size_t decoded_bytes = 0;
-        arbitrary_numeric_code ret_status = 0;
+        arbitrary_return_code ret_status = 0;
 
         decode_buffer_ptr =
             n47::lzma::decompress(raw_buffer_.front(), raw_buffer_.size(),
                                   &ret_status, &decoded_bytes);
 
-#ifdef IS_DEEPBUG
-        cerr << "LZMA decompress done!"
-             << "\n";
-#endif
+        _DPn("LZMA decompress done!");
 
         if (ret_status != N47_E_OK) {
-            cerr << "LZMA decoding didn't work out!"
-                 << "\n";
+            _DPn("LZMA decoding didn't work out!");
             decoded_bytes = 0;
             decode_buffer_ptr = nullptr;
             byte_buffer = nullptr;
@@ -247,10 +233,7 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
         byte_buffer_size = decoded_bytes;
 
     } else {
-#ifdef IS_DEEPBUG
-        cerr << "Is straight BINARY buffer"
-             << "\n";
-#endif
+        _DPn("Is straight BINARY buffer");
         decode_buffer_ptr = nullptr;
         byte_buffer = raw_buffer_.front();
         byte_buffer_size = raw_buffer_.size();
@@ -259,8 +242,8 @@ arbitrary_numeric_code QuantSequentialData_DukascopyTicks::loadNextChunk() {
     byte_buffer_end = byte_buffer + byte_buffer_size;
 
 #ifdef IS_DEEPBUG
-    cerr << "All decoding done, byte size is: " << byte_buffer_size << "\n";
-    cerr << "'unit'-size is: " << (byte_buffer_size / (4 * 5.0)) << "\n";
+    _DPn("All decoding done, byte size is: " << byte_buffer_size << "\n");
+    _DPn("'unit'-size is: " << (byte_buffer_size / (4 * 5.0)) << "\n");
     cerrbug_a_buffer(byte_buffer, byte_buffer_size);
 #endif
 
@@ -296,17 +279,17 @@ inline void loadBigEndian32To ( T *val_ptr, const unsigned char *buffer ) {
 }
 */
 
-bool QuantSequentialData_DukascopyTicks::readTick(QuantTick& tick) {
+bool SQDI_Ticks_Dukascopy::readTick(QuantTick& tick) {
     // cerr << "readTick()" << "\n";
     //#ifdef IS_DEBUG
-    profiler.start(DECODING_FILES);
+    profiler.start(DECODING_FILES_DUKAS);
     //#endif
 
     // *TODO* move this stuff out since it'l be used more seldom...
     if (buf_ptr == byte_buffer_end) {
         N retries =
             session_break_duration_in_chunk_units + 1; // session break...
-        arbitrary_numeric_code ret = 0; // silence compiler warnings.. could be done with pragmas
+        arbitrary_return_code ret = 0; // silence compiler warnings.. could be done with pragmas
                      // too though..
 
         while (--retries > 0) {
@@ -321,7 +304,7 @@ bool QuantSequentialData_DukascopyTicks::readTick(QuantTick& tick) {
         }
 
         if (ret == -2) {
-            cerr << "no more data - sets max time on tick.time\n";
+            _DPn("no more data - sets max time on tick.time");
             tick.time = pxt::max_date_time;
             return false; // *TODO* NO MORE DATA...
         }
@@ -351,7 +334,7 @@ bool QuantSequentialData_DukascopyTicks::readTick(QuantTick& tick) {
 //      cerr << "Specific decode Tick is: " << tick.ask << ", " << tick.bid <<
 // ", " << tick.ask_volume << " at " << 47 << "/" << byte_buffer_size << "\n";
 
-// cerr << "QuantSequentialData_DukascopyTicks::readTick: " << tick.time << "
+// cerr << "SQDI_Ticks_Dukascopy::readTick: " << tick.time << "
 // ask: " << tick.ask << " bid: " << tick.bid << "\n";
 
 #else
@@ -383,7 +366,7 @@ bool QuantSequentialData_DukascopyTicks::readTick(QuantTick& tick) {
 // << ", " << tick.ask_volume << " at " << 47 << "/" << byte_buffer_size <<
 // "\n";
 // buf_ pos += n47::ROW_SIZE;
-// cerr << "QuantSequentialData_DukascopyTicks::readTick: " << tick.time << "
+// cerr << "SQDI_Ticks_Dukascopy::readTick: " << tick.time << "
 // ask: " << tick.ask << " bid: " << tick.bid << "\n";
 
 #endif
@@ -395,7 +378,7 @@ bool QuantSequentialData_DukascopyTicks::readTick(QuantTick& tick) {
     //#endif
 
     //#ifdef IS_DEBUG
-    profiler.end(DECODING_FILES);
+    profiler.end(DECODING_FILES_DUKAS);
     //#endif
 
     return true;

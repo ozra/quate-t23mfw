@@ -1,5 +1,7 @@
+var/
 ext/
 junkyard/
+tmp/
 
 *.o
 *.d
@@ -8,9 +10,5 @@ junkyard/
 *.so
 *.dll
 
-###########################
-# Vi and VIM files.
-#--------------------------
 *.swp
-
-
+*.orig

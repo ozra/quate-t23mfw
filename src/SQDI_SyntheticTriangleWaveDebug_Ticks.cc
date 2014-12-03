@@ -1,4 +1,4 @@
-#include "QuantSequentialData_SyntheticTriangleWaveDebug_Ticks.hh"
+#include "SQDI_SyntheticTriangleWaveDebug_Ticks.hh"
 #ifdef INTERFACE
 /**
 * Created:  2014-10-22
@@ -7,7 +7,7 @@
 **/
 
 #include "QuantSequentialDataUtils.hh"
-#include "QuantSequentialData_TradeTicksAbstract.hh"
+#include "SQDI_Ticks_Abstract.hh"
 
 /*
  *
@@ -27,13 +27,13 @@
  *
  */
 
-// class QuantSequentialData_TriangleWaveTicks : public
+// class SQDI_TriangleWaveTicks : public
 // QuantSequentialDataAbstract
-class QuantSequentialData_TriangleWaveTicks
-    : public QuantSequentialData_TradeTicksAbstract {
+class SQDI_TriangleWaveTicks
+    : public SQDI_Ticks_Abstract {
    public:
-    QuantSequentialData_TriangleWaveTicks() {};
-    ~QuantSequentialData_TriangleWaveTicks() {};
+    SQDI_TriangleWaveTicks() {};
+    ~SQDI_TriangleWaveTicks() {};
 
     bool init(std::string p_broker_id, std::string p_symbol);
 
@@ -56,7 +56,7 @@ class QuantSequentialData_TriangleWaveTicks
 
 #endif
 
-bool QuantSequentialData_TriangleWaveTicks::init(std::string p_broker_id,
+bool SQDI_TriangleWaveTicks::init(std::string p_broker_id,
                                                  std::string p_symbol) {
     broker_id = p_broker_id;
     symbol = p_symbol;
@@ -65,7 +65,7 @@ bool QuantSequentialData_TriangleWaveTicks::init(std::string p_broker_id,
     return true;
 }
 
-bool QuantSequentialData_TriangleWaveTicks::readTick(QuantTick& tick) {
+bool SQDI_TriangleWaveTicks::readTick(QuantTick& tick) {
 
     /*
      *
