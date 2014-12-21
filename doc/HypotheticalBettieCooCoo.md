@@ -5,52 +5,70 @@
 **/
 
 
-namespace Bettie {
 
-class Component {
-
-
-    vector<Component*>      children;
+    namespace Bettie {
 
 
-};
-
-class Doc : public Bettie::Component {
-
-}
-
-namespace Web {
-
-class LoginForm : public Bettie::Component {
-
-    init() {
+    class Component {
 
 
-        parent::init()
+        vector<Component*>      children;
+
+
+    };
+
+    class Doc : public Bettie::Component {
 
     }
 
-    render() {
 
-        parent::render()
+    namespace Web {
+
+    class LoginForm : public Bettie::Component {
+
+        void init() {
+            //asquery(&records, "SELECT * FROM news_roster ORDER BY time DESC LIMIT 10");
+            asquery(&records, "GET TOP 10 news_roster BY time");
+
+            parent::init()
+
+        }
+
+        void render() {
+            BettieBuf out;
+
+            for( auto rs : records ) {
+                out << form_tpl.render(rs);
+
+            }
+
+            up('content')(out);
+
+            parent::render();
+
+        }
+
+        Tpl form_tpl = """
+    <div id="{{the_id | "undefined"}}>
+        {{content | "No news" }}
+    </div>
+    """
 
     }
 
-}
 
 
 
 
+    layout()
 
-layout()
-
-    doc(
-        head(
-            scripts,
-            css,
-            metas
-        ),
-        body(
-            main_content
-        )
-    );
+        doc(
+            head(
+                scripts,
+                css,
+                metas
+            ),
+            body(
+                main_content
+            )
+        );

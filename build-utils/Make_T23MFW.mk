@@ -74,7 +74,7 @@ T23MFW_COMPILER_DBGDEV=clang++ \
 						-march=native \
 						-DIS_DEBUG -DIS_DEEPBUG \
 #						-pthread
-T23MFW_LINKER_DBGDEV=ccache clang++ -W -Wall -std=c++11 \
+T23MFW_LINKER_DBGDEV=clang++ -W -Wall -std=c++11 \
 						-g -O0 -pedantic \
 						-DIS_DEBUG -DIS_DEEPBUG
 #						-pthread \
@@ -100,7 +100,7 @@ T23MFW_COMPILER_DEVFAST=ccache g++ \
 #						-flto \
 #						-fno-strict-overflow \
 #						-pthread
-T23MFW_LINKER_DEVFAST=ccache g++ -W -Wall -std=c++11 \
+T23MFW_LINKER_DEVFAST=g++ -W -Wall -std=c++11 \
 						-O2 -pedantic \
 						-fno-default-inline \
 
@@ -110,20 +110,37 @@ T23MFW_LINKER_DEVFAST=ccache g++ -W -Wall -std=c++11 \
 
 
 # # # # # # # # # NOBELT # # # # # # # # # # # #
-T23MFW_COMPILER_NOBELT=ccache g++ \
+T23MFW_COMPILER_NOBELT_GCC=ccache g++ \
 						-W -Wall -std=c++11 \
 						-Werror=return-type \
-						-O3 -march=native \
+						-Ofast -march=native \
 						-fomit-frame-pointer -ffast-math -flto \
 						-funsafe-loop-optimizations \
 						-fno-default-inline \
 						-DNDEBUG -DIS_NOBELT \
 #						-fno-strict-overflow \
 #						-pthread
-T23MFW_LINKER_NOBELT=ccache g++ -W -Wall -std=c++11 \
+#						-O3 -march=native \
+
+T23MFW_LINKER_NOBELT_GCC=g++ -W -Wall -std=c++11 \
 						-flto \
 						-fno-default-inline \
-						-O3 -pedantic
+						-Ofast -pedantic
+#						-O3 -pedantic
+#						-pthread
+
+# # # # # # # # # NOBELT # # # # # # # # # # # #
+T23MFW_COMPILER_NOBELT_CLANG=ccache clang++ \
+						-W -Wall -std=c++11 \
+						-Werror=return-type \
+						-Ofast -march=native \
+						-fomit-frame-pointer -ffast-math -flto \
+						-DNDEBUG -DIS_NOBELT \
+#						-fno-strict-overflow \
+#						-pthread
+T23MFW_LINKER_NOBELT_CLANG=clang++ -v -W -Wall -std=c++11 \
+						-flto \
+						-Ofast -pedantic
 #						-pthread
 
 

@@ -164,12 +164,15 @@ QuantFeedAbstract::QuantFeedAbstract(S broker_id, string symbol_id, Z lookback,
     // default param) 141013/ORC
     // *TODO* this has NOTHING to do in QuantFeedAbstract!!!
     if (broker_id == "DUKASCOPY") {
+        _Dn("Instantiates T23M tick source");
         sequential_data_interface = new SQDI_Ticks_T23M();
     }
     else if (broker_id == "DUKASCOPY_RAW") {
+        _Dn("Instantiates Dukascopy RAW tick source");
         sequential_data_interface = new SQDI_Ticks_Dukascopy();
     }
     else {
+        _Dn("Instantiates T23M tick source by defaulting");
         sequential_data_interface = new SQDI_Ticks_T23M();
     }
     the_jar->add(this);

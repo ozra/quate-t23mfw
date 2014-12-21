@@ -31,6 +31,210 @@ inline bool not_yet(N val, T & obj)
 typedef QuantReal QR;
 
 
+
+
+template <bool FOO = true>  // Just to keep it compiling though all inlined.. *TEMP*
+class FooTrader
+{
+  public:
+    FooTrader(QuantFeedAbstract & feed, R balance, N leverage)
+        : feed(feed)
+        , balance(balance)
+        , initial_deposit(balance)
+        , leverage(leverage)
+    {
+    }
+
+    ~FooTrader()
+    {
+        report();
+    }
+
+    void deposit(R qty)
+    {
+        balance += qty;
+    }
+    R get_equity()
+    {
+        return balance + (security_qty * ((feed.ticks().bid + feed.ticks().ask) /
+                                          2));
+    }
+    inline void handle_tick()
+    {
+        if (current_position == 0) {
+            return;
+        }
+        else if (current_position == 1) {
+            R p = feed.ticks().bid;
+            if (p > last_trail_source_price) {
+                calculate_trail_price(p);
+            }
+            if (current_stop_loss && p < current_stop_loss) {
+                cerr << "Closes long because of stop loss\n";
+                close_long();
+            }
+            else if (current_trailing_stop_delta && p < current_trailing_stop) {
+                cerr << "Closes long because of trailing stop loss\n";
+                close_long();
+            }
+        }
+        else {
+            R p = feed.ticks().ask;
+            if (p < last_trail_source_price) {
+                calculate_trail_price(p);
+            }
+            if (current_stop_loss && p > current_stop_loss) {
+                cerr << "Closes short because of stop loss\n";
+                close_short();
+            }
+            else if (current_trailing_stop_delta && p > current_trailing_stop) {
+                cerr << "Closes short because of trailing stop loss\n";
+                close_short();
+            }
+        }
+    }
+    inline void calculate_trail_price(R price)
+    {
+        last_trail_source_price = price;
+        if (current_position == 1) {
+            current_trailing_stop = price * (1 - current_trailing_stop_delta);
+        }
+        else {
+            current_trailing_stop = price * (1 + current_trailing_stop_delta);
+        }
+    }
+    bool buy(R qty_percent = 5, R stop_loss = 0, R trailing_stop = 0)
+    {
+        if (current_position == 1) {
+            //cerr << "buy: Already long!" << "\n";
+            return false;
+        }
+        else if (current_position == -1) {
+            //cerr << "buy: Is short, so we close the short before longing!" << "\n";
+            close_short();
+        }
+        // *TODO* make sure minimum lot size is reached or fail
+        current_position = 1;
+        position_entry_price = feed.ticks().ask;
+        // Check if stop_loss is given in percent
+        if (stop_loss != 0 && stop_loss < 0.2) {
+            stop_loss = feed.ticks().bid * (1 - stop_loss);
+        }
+        current_stop_loss = stop_loss;
+        current_trailing_stop_delta = trailing_stop;
+        if (trailing_stop) {
+            calculate_trail_price(feed.ticks().bid);
+        }
+        position_size = qty_percent / 100 * balance;
+        security_qty = (position_size * leverage) / position_entry_price;
+        balance -= position_size;
+        _Dn("Open long at " << position_entry_price << " = size " << security_qty *
+            position_entry_price);
+        return true;
+    }
+    bool sell(R qty_percent = 5, R stop_loss = 0, R trailing_stop = 0)
+    {
+        if (current_position == -1) {
+            //cerr << "sell: Already short!" << "\n";
+            return false;
+        }
+        else if (current_position == 1) {
+            //cerr << "sell: Is long, so we close the long before shorting!" << "\n";
+            close_long();
+        }
+        // *TODO* make sure minimum lot size is reached or fail
+        current_position = -1;
+        position_entry_price = feed.ticks().bid;
+        if (stop_loss != 0 && stop_loss < 0.2) {
+            stop_loss = feed.ticks().ask * (1 + stop_loss);
+        }
+        current_stop_loss = stop_loss;
+        current_trailing_stop_delta = trailing_stop;
+        if (trailing_stop) {
+            last_trail_source_price = feed.ticks().ask;
+            current_trailing_stop = feed.ticks().ask * (1 + current_trailing_stop_delta);
+        }
+        position_size = qty_percent / 100 * balance;
+        security_qty = (position_size * leverage) / position_entry_price;
+        balance -= position_size;
+        _Dn("Open short at " << position_entry_price << " = size " << security_qty *
+            position_entry_price);
+        return true;
+    }
+    bool close_long()
+    {
+        if (current_position != 1) {
+            cerr << "close_long: Not long, so couldn't!" << "\n";
+            return false;
+        }
+        current_position = 0;
+        current_stop_loss = 0;
+        current_trailing_stop = 0;
+        current_trailing_stop_delta = 0;
+        R got = security_qty * feed.ticks().bid - security_qty * position_entry_price;
+        balance += got;
+        transaction_times.push_back(feed.ticks().time);
+        transactions.push_back(got);
+        cerr << "closed long opened at " << position_entry_price << " on " <<
+             feed.ticks().bid << " a diff off: " << (feed.ticks().ask -
+                     position_entry_price) / position_entry_price * 100 << "\n";
+        return true;
+    }
+    bool close_short()
+    {
+        if (current_position != -1) {
+            cerr << "close_short: Not short, so couldn't!" << "\n";
+            return false;
+        }
+        current_position = 0;
+        current_stop_loss = 0;
+        current_trailing_stop = 0;
+        current_trailing_stop_delta = 0;
+        R got = -(security_qty * feed.ticks().ask - security_qty *
+                  position_entry_price);
+        balance += got;
+        transaction_times.push_back(feed.ticks().time);
+        transactions.push_back(got);
+        cerr << "closed short opened at " << position_entry_price << " on " <<
+             feed.ticks().ask << " a diff off: " << (position_entry_price -
+                     feed.ticks().ask) / position_entry_price * 100 << "\n";
+        return true;
+    }
+    void report()
+    {
+        cerr << "RESULTS OF TRADING" << "\n";
+        cerr << "\n";
+        for (N i = 0; i < transactions.size(); ++i) {
+            cerr << "trade: " << transaction_times[i] << " resulted in " << transactions[i]
+                 << "\n";
+        }
+        cerr << "\n";
+        cerr << "Finally: " << balance << " which is " << 100 *
+             (balance - initial_deposit) /
+             initial_deposit << "%" << "\n";
+        cerr << "\n";
+    }
+  private:
+    QuantFeedAbstract & feed;
+    vector<R>           transactions;
+    vector<QuantTime>   transaction_times;
+    R initial_deposit = 0;
+    R balance = 0;
+    N leverage = 0;
+    Z current_position = 0;
+    R position_entry_price = 0;
+    R position_size = 0;
+    R security_qty = 0;
+    R current_trailing_stop_delta = 0;
+    R current_trailing_stop = 0;
+    R last_trail_source_price = 0;
+    R current_stop_loss = 0;
+    R max_drawdown = 0;
+    R max_profit = 0;
+    R max_loss = 0;
+};
+
+
 using namespace QTA;
 
 template <bool PLOTTING_USED>
@@ -44,30 +248,31 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     using parent::close_plot_lap;
 
   public:
-    string main_symbol;
-    string symbol2;
+    string                      main_symbol;
+    string                      symbol2;
 
-    QuantFeed<self> main_feed;
-    QuantPeriodization<self> ps;
+    QuantFeed<self>             main_feed;
+    FooTrader<true>             trader;
+    QuantPeriodization<self>    ps;
 
-    QuantPeriodization<self> pm;
-    Ema ema_ask;
-    Ema ema_bid;
-    Ema ema_ask_l;
-    Ema ema_bid_l;
-    Ema ema50pm;
-    Ema ema200pm;
+    QuantPeriodization<self>    pm;
+    Ema                         ema_ask;
+    Ema                         ema_bid;
+    Ema                         ema_ask_l;
+    Ema                         ema_bid_l;
+    Ema                         ema50pm;
+    Ema                         ema200pm;
     // PeriodTickMean         meanpm;
-    PeriodTickMean mean_ask;
-    PeriodTickMean mean_bid;
-    Highest highestpm;
-    Lowest lowestpm;
-    Highest highestpmlong;
-    Lowest lowestpmlong;
+    PeriodTickMean              mean_ask;
+    PeriodTickMean              mean_bid;
+    Highest                     highestpm;
+    Lowest                      lowestpm;
+    Highest                     highestpmlong;
+    Lowest                      lowestpmlong;
 
-    QuantPeriodization<self> pl;
+    QuantPeriodization<self>    pl;
 
-    QuantFeed<self> feed2nd;
+    QuantFeed<self>             feed2nd;
 
     // QuantFeed           *main_joint_feed;
     N handled_ticks_count = 0;
@@ -95,18 +300,19 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
         , symbol2(param("symbol2", "EURUSD", "Complementary instrument"))
         , main_feed(param("main_broker_id", "_CRASH_ME_", "Main broker"),
                     main_symbol, 10)
+        , trader(main_feed, 40000, 300)
         , ps(param("fast_period", 0.47, "'Fast' period"), main_feed)
         , pm(param("pm_period_len", 0.50, "'1 minute' period"))
           // *TODO* the tick-aggregation length should be "abrubtly" changed
           // depending on if "in or out of prime time" - thus dynamic.
-        , ema_ask(param("ask_tick_ema_len", 200, "Ask Tick EMA length"))
-        , ema_bid(param("bid_tick_ema_len", 200, "Bid Tick EMA length"))
-        , ema_ask_l(param("ask_tick_ema_len", 800 /*1600*/,
+        , ema_ask(param("ask_tick_ema_len", 20000, "Ask Tick EMA length"))
+        , ema_bid(param("bid_tick_ema_len", 20000, "Bid Tick EMA length"))
+        , ema_ask_l(param("ask_tick_ema_len", 5600 /*1600*/,
                           "Ask Tick EMA long length"))
-        , ema_bid_l(param("bid_tick_ema_len", 800 /*1600*/,
+        , ema_bid_l(param("bid_tick_ema_len", 5600 /*1600*/,
                           "Bid Tick EMA long length"))
-        , ema50pm(param("fast_ema_len", 2, "Fast EMA length"))
-        , ema200pm(param("mid_ema_len", 200, "Mid EMA length"))
+        , ema50pm(param("fast_ema_len", 50 * 10, "Fast EMA length"))
+        , ema200pm(param("mid_ema_len", 200 * 10, "Mid EMA length"))
         , mean_ask()
         , mean_bid()
         , highestpm(param("highest_len", 5, "Highest length"))
@@ -114,9 +320,7 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
         , highestpmlong(param("highest_long_len", 100, "Highest Long length"))
         , lowestpmlong(param("lowest_long_len", 100, "Lowest Long length"))
         , pl(param("pl_period_len", 240.0, "'4 hour' period"))
-        ,
-
-          feed2nd { "DUKASCOPY_RAW", symbol2, 3 }
+        , feed2nd { "DUKASCOPY", symbol2, 3 }   // DUKASCOPY_RAW will _not_ be supported from strategies any more...
     {
         cerr << "\nZarScalperBot::ZarScalperBot constructor"
              << "\n\n";
@@ -157,12 +361,13 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     }
     inline void every_ghost_tick(const QuantTick & tick)
     {
-        _Dn("--> GHOST " << tick.time.time_of_day() << " :: " << tick.ask);
+        //_Dn("--> GHOST " << tick.time.time_of_day() << " :: " << tick.ask);
         ps.accumulate_from_feed_tick_ask(tick);
     }
     inline void every_real_tick(const QuantTick & tick)
     {
-        _Dn("--> TICK " << tick.time.time_of_day() << " :: " << tick.ask);
+        //_Dn("--> TICK " << tick.time.time_of_day() << " :: " << tick.ask);
+        trader.handle_tick();   // tick);
         ps.accumulate_from_feed_tick_ask(tick);
         ++handled_ticks_count;
         mean_ask << tick.ask;
@@ -174,17 +379,16 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     }
     void every_ps_close()
     {
-        dlog_candle_time_and_close(ps);
-        do_candle_validations(ps);
+        //dlog_candle_time_and_close(ps);
+        //do_candle_validations(ps);
         #ifndef TEST_ONLY_ONE_BASE_PERIODIZATION
         pm.accumulate_from_source_candle(ps);
         #endif
     }
     void every_pm_close()
     {
-        //_Dn("ZarScalperBot::every_pm_close - - - :" << pm.to_str());
-        dlog_candle_time_and_close(pm);
-        do_candle_validations(pm);
+        //dlog_candle_time_and_close(pm);
+        //do_candle_validations(pm);
         pl.accumulate_from_source_candle(pm);
         if (not_yet(2, pm)) { return; }
         //#define close pm.close
@@ -256,6 +460,38 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
         assert( pm.close == ps.close );
         assert( granular_close == pm.close );
         */
+        /*
+
+        */
+        QR midp = 1.003 * (main_feed.ticks().bid + main_feed.ticks().ask) / 2;
+        //bool is_sell = ema_ask < ema_ask_l && ema_bid < ema_bid_l;
+        //bool is_buy = ema_ask > ema_ask_l && ema_bid > ema_bid_l;
+        bool is_sell = ema_ask_l - ema_ask_l[1] <
+                       -0.0001; // < ema_ask_l && ema_bid < ema_bid_l;
+        bool is_buy = ema_ask_l  - ema_ask_l[1] >
+                      0.0001; // ema_ask > ema_ask_l && ema_bid > ema_bid_l;
+        if (is_sell) {
+            if (trader.sell(5, 0, 0.005)) {
+                plot(midp * (1 - 0.001), "trade");
+            }
+            else {
+                plot(midp, "trade");
+            }
+        }
+        else if (is_buy) {
+            if (trader.buy(5, 0, 0.005)) {
+                plot(midp * (1 + 0.001), "trade");
+            }
+            else {
+                plot(midp, "trade");
+            }
+        }
+        else {
+            plot(midp, "trade");
+        }
+        /*
+
+        */
         if (PLOTTING_USED) { // && is_primed ) {
             plot_ohlc(pm.open, pm.high, pm.low, pm.close, "main_instrument", "aaffaa",
                       "ffaaaa", "005500", "550000", true);
@@ -280,7 +516,7 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
             // plot( ( ema_ask + ema_bid ) / 2 , "ema_ask_bid_midpoint",
             // "000055", 2,
             // DASH, DOTTED );
-            // plot( ema200pm, "ema200", "ff0000", 3, LINE, DASHED );
+            plot(ema200pm, "ema200", "ff0000", 3, LINE, DASHED);
             // plot( highestpm, "highest_high", "00aa00", 1, DASH, DASHED );
             // plot( lowestpm, "lowest_low", "aa0000", 1, DASH, DASHED );
             // plot( ( highestpm + lowestpm ) * ( 1.0 / 2.0 ), "mid", "dddddd",

@@ -1,5 +1,11 @@
 include $(T23MFW_ROOT)/build-utils/Make_T23MFW.mk
 
+# T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_CLANG)
+# T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_CLANG)
+T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_GCC)
+T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_GCC)
+
+
 VPATH=src/:$(T23SRC):$(T23SRC)/QTA/src/
 
 ASTYLING=astyle --style=otbs --indent=spaces=4 --delete-empty-lines --break-closing-brackets --attach-namespaces --indent-modifiers --indent-preproc-block --indent-preproc-define --indent-preproc-cond --min-conditional-indent=0 --max-instatement-indent=40 --pad-oper --pad-header --unpad-paren --align-pointer=middle --align-reference=middle --add-one-line-brackets --convert-tabs --close-templates --max-code-length=79 --lineend=linux
