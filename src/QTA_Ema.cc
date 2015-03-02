@@ -10,13 +10,14 @@
 
 namespace QTA {
 
-class Ema : public QTA::ObjectAbstract {
-   public:
-    Ema(size_t length, size_t max_lookback = 0
-                       /*, QuantBuffer input */
-                       //, QuantPeriodizationAbstract &perian =
-                       //*global_actives.active_periodization
-        );
+class Ema : public QTA::ObjectAbstract
+{
+  public:
+    Ema(ff_size_t length, ff_size_t max_lookback = 0
+            /*, QuantBuffer input */
+            //, QuantPeriodizationAbstract &perian =
+            //*global_actives.active_periodization
+       );
     /*
     Ema (
         int length
@@ -49,7 +50,8 @@ class Ema : public QTA::ObjectAbstract {
         handleValue( value );
     }
     */
-    inline auto operator[](int reverse_index) const -> QuantReal {
+    inline auto operator[](int reverse_index) const -> QuantReal
+    {
         // *TODO* verify that the cell has been set before accessing!
         return result[reverse_index];
     }
@@ -57,16 +59,15 @@ class Ema : public QTA::ObjectAbstract {
         // *TODO* verify that the cell has been set before accessing!
         return result[reverse_index];
     }
-    inline operator QuantReal() const {
+    inline operator const QuantReal() const
+    {
         // return *((QuantReal *)result.head_ptr);
-
         // *TODO* verify that the cell has been set before accessing!
-
         return result;
     };
 
     inline auto operator()(QuantReal value, int len)
-        -> void { // Dynamically altered period
+    -> void { // Dynamically altered period
         ema_k = 2.0 / (len + 1.0);
         handleValue(value);
     }
@@ -77,14 +78,16 @@ class Ema : public QTA::ObjectAbstract {
     // *BUBBLARE* *TODO*
     inline auto commit() -> void { result |= prevMA; }
 
-   private:
+  private:
     inline auto handleValue(QuantReal in_value) -> void {
 
         // *TODO*  replace with the is_primed stuff..
 
-        if (dynamically_inited) {
+        if (dynamically_inited)
+        {
             prevMA = ((in_value - prevMA) * ema_k) + prevMA;
-        } else {
+        }
+        else {
             prevMA = in_value;
             dynamically_inited = true;
         }
@@ -97,16 +100,18 @@ class Ema : public QTA::ObjectAbstract {
         commit();
     }
 
+    // *TODO* add support for (value, period) for dynamic re-periodization (re-calc val if input changes)
+
     // virtual void prime ( QuantReal value );    // prime the lookback with
     // reasonable approximations, default values
 
-    size_t len;
-    size_t lookback;
+    ff_size_t len;
+    ff_size_t lookback;
     QuantReal ema_k;
 
     bool dynamically_inited = false;
-    size_t prime_count = 0;
-    size_t prime_minimum = 0;
+    ff_size_t prime_count = 0;
+    ff_size_t prime_minimum = 0;
 
     QuantReal prevMA = 0;
 
@@ -120,15 +125,16 @@ class Ema : public QTA::ObjectAbstract {
 
 namespace QTA {
 
-Ema::Ema(size_t length,
-         size_t max_lookback) //, QuantPeriodizationAbstract &per )
+Ema::Ema(ff_size_t length,
+         ff_size_t max_lookback) //, QuantPeriodizationAbstract &per )
     : ObjectAbstract(),
       len(length),
       lookback(max(length, max_lookback)),
       ema_k(2.0 / (length + 1.0)),
       prime_minimum{ len * 4 }, // MAX( len * 4, lookback ) }
       // per( per ),
-      result( lookback ) {
+      result(lookback)
+{
     // per.add( result, lookback );
 }
 

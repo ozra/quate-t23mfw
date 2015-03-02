@@ -8,7 +8,7 @@
 // "Core"
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedBuffer.hh"
+#include "QuantBuffersIntertwinedBuffer.hh"
 //#include "QuantPeriodizationAbstract.hh"
 
 #include "QTA_ObjectAbstract.hh"

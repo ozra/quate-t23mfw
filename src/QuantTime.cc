@@ -10,7 +10,19 @@
  *
  *   *TODO* *EXPERIMENTAL*
  *
- */
+ *
+ *  REMODEL system to use this class!
+ *
+ *  Just sub-class ptime etc. for date-manip functionality! KISS!
+ *
+ *  QuantTime64 is 1 ms resolution
+ *  QuantTime32 is 128 ms resolution (17.4Y range)
+ *
+ *  "Expanded" quant-time, stored in decoded elements, is always relative to
+ *  "calculation range start epoch". Only if printable date or out of context use
+ *  is needed do we add epoch and return TimeStamp64..
+ *
+   */
 
 /*
  * Thoughts.
@@ -29,15 +41,17 @@
  * DATUM SAMPLE TIMESTAMP
  *
  * - 32 bit size:
- *      - 8171 YEARS in MINUTES resolution                      (FIN-usage -
- *higher compression basically)
- *      - 136 YEARS in SECONDS resolution                       (FIN-usage)
- *      - 13.7 YEARS in MILLIS resolution w/ UNCERTAINTY = 100  (FIN-usage)
- *      - 6.4 YEARS in MILLIS resolution w/ UNCERTAINTY = 47    (FIN-usage)
- *      - 50 DAYS in MILLIS resolution                          (FIN-usage)
- *      - 71 MINUTES in MICROS resolution                       (SCI-usage)
- *      - 4.29 SECONDS in NANOS resolution                      (SCI-usage)
- *      - 4 MILLIS in PICOS resolution                          (SCI-usage)
+ *   - FIN USAGE -
+ *      - 8171 YEARS in MINUTES resolution
+ *      - 136 YEARS in SECONDS resolution
+ *      - 13.7 YEARS in DECISECS (100 millis)
+ *   -> - 27.4 YEARS in QUINTISECS (200 millis)
+ *      - 50 DAYS in MILLIS resolution
+ *
+ *   - SCI usage -
+ *      - 71 MINUTES in MICROS resolution
+ *      - 4.29 SECONDS in NANOS resolution
+ *      - 4 MILLIS in PICOS resolution
  *
  * - 64 bit size:
  *      - 884 YEARS in NANOS resolution   (SCI-usage)
@@ -75,15 +89,35 @@ namespace dt = boost::gregorian;
 
 namespace qts {
 
-enum enum_resolution : uint64_t {
-    UNDEF = 0,
-    NANOS = 1,
-    MICROS = 1000,
-    MILLIS = 1000000,
-    SECONDS = 1000000000,
-    MINUTES = 60000000000,
-    HOURS = 3600000000000
+/*
+enum time_scale : uint64_t {
+    UNDEF =     0,
+    PICOS =     0,
+    NANOS =     1,
+    MICROS =    1000,
+    MILLIS =    1000000,
+    DECIS =     100000000,  // Yeah, new fucking invention in time - to make u32-ts possible in some contexts.. 2015-02-20
+    QUINTIS =   200000000,  // Yeah, new fucking invention in time - to make u32-ts possible in some contexts.. 2015-02-20
+    SECONDS =   1000000000,
+    MINUTES =   60000000000,
+    HOURS =     3600000000000
 };
+*/
+
+enum time_scale : uint64_t {
+    UNDEF =     0,
+    PICOS =     0,
+    NANOS =     0,
+    MICROS =    0,
+
+    MILLIS =    1,
+    DECIS =     100,  // Yeah, new fucking invention in time - to make u32-ts possible in some contexts.. 2015-02-20
+    QUINTIS =   200,  // Yeah, new fucking invention in time - to make u32-ts possible in some contexts.. 2015-02-20
+    SECONDS =   1000,
+    MINUTES =   60000,
+    HOURS =     3600000
+};
+
 
 /*
 enum enum_formulation {
@@ -112,55 +146,51 @@ enum enum_formulation {
  * other EPOCH-bases.
  */
 
-inline auto ms_from_ptime(pxt::ptime ts) -> N64 { // - 2014-11-10/Oscar Campbell
+inline auto ms_from_ptime(pxt::ptime ts) ->
+uint64_t { // - 2014-11-10/Oscar Campbell
     static pxt::ptime unix_epoch__ =
-        pxt::time_from_string("1970-01-01 00:00:00.000");
+    pxt::time_from_string("1970-01-01 00:00:00.000");
     return (ts - unix_epoch__).total_milliseconds();
 }
 
 //V - 2014-11-20/Oscar Campbell
-inline auto millis(pxt::ptime ts) -> N64 { return ms_from_ptime(ts); }
+inline auto millis(pxt::ptime ts) -> uint64_t { return ms_from_ptime(ts); }
 
-inline auto ptime_from_ms(N64 ts)
-    -> pxt::ptime { // - 2014-11-10/Oscar Campbell
+inline auto ptime_from_ms(uint64_t ts)
+-> pxt::ptime { // - 2014-11-10/Oscar Campbell
     static pxt::ptime unix_epoch__ =
-        pxt::time_from_string("1970-01-01 00:00:00.000");
+    pxt::time_from_string("1970-01-01 00:00:00.000");
     return { unix_epoch__ + pxt::milliseconds(ts) };
 }
 
 inline pxt::ptime
 get_prior_aligned_ts(pxt::ptime ts, pxt::time_duration alignment,
                      dt::greg_weekday epochian_weekday = dt::greg_weekday(
-                         dt::greg_weekday::weekday_enum::Sunday)) {
+                                 dt::greg_weekday::weekday_enum::Sunday))
+{
     pxt::ptime epochian_ts;
-
     cerr << "get_prior_aligned_ts() : ";
     cerr << ", ts:" << ts;
     cerr << ", alignment:" << alignment;
-
     if (alignment <= pxt::hours(24)) {
         epochian_ts = pxt::ptime(ts.date(), pxt::hours(0));
         cerr << ", intraday epochian_ts = " << epochian_ts;
-    } else {
+    }
+    else {
         epochian_ts = pxt::ptime(
-            dt::previous_weekday(ts.date(), epochian_weekday), pxt::hours(0));
+                          dt::previous_weekday(ts.date(), epochian_weekday), pxt::hours(0));
         cerr << ", weekly epochian_ts = " << epochian_ts;
     }
-
     pxt::time_duration d = (ts - epochian_ts);
     cerr << ", (ts - epochian_ts) = " << d;
-
-    //  *TODO* CONF of TIME_RESOLUTION - now lowest is "millis", we might want
+    //  *TODO* CONF of TIME_TIME_SCALE - now lowest is "millis", we might want
     // to support nanos for scientific data... 2014-10-29/ORC
     pxt::time_duration ofs(pxt::milliseconds(d.total_milliseconds() %
-                                             alignment.total_milliseconds()));
+                           alignment.total_milliseconds()));
     cerr << ", ofs = " << ofs;
-
     pxt::ptime final_ts = ts - ofs; // + alignment;
     cerr << ", final_ts = " << final_ts;
-
     cerr << "\n";
-
     return final_ts;
 }
 
@@ -169,94 +199,150 @@ get_prior_aligned_ts(pxt::ptime ts, pxt::time_duration alignment,
 // crossing???
 //
 inline pxt::ptime get_next_aligned_ts(pxt::ptime ts,
-                                      pxt::time_duration alignment) {
+                                      pxt::time_duration alignment)
+{
     return get_prior_aligned_ts(ts, alignment) + alignment;
 }
 
 inline pxt::ptime get_next_aligned_ts(pxt::ptime ts,
                                       pxt::time_duration alignment,
-                                      dt::greg_weekday epochian_weekday) {
+                                      dt::greg_weekday epochian_weekday)
+{
     return get_prior_aligned_ts(ts, alignment, epochian_weekday) + alignment;
 }
 //
 //
 //
 
-// *TODO* add SUB_RESOLUTION AKA UNCERTAINTY
-// template <enum_resolution RESOLUTION, int SUB_RESOLUTION, typename T>
-template <enum_resolution RESOLUTION, typename T>
-class QuantTimeStamp {
-   public:
-    QuantTimeStamp() { timestamp = 0; }
 
-    QuantTimeStamp(T duration) : timestamp{ duration } {}
+template <time_scale TIME_SCALE, typename T>
+class QuantTimeStamp
+{
+  public:
+    QuantTimeStamp() { timestamp_ = 0; }
+
+    QuantTimeStamp(T duration) : timestamp_{ duration } {}
 
     ~QuantTimeStamp() {}
 
-    operator T() const { return timestamp; }
+    operator T() const { return timestamp_; }
 
-    void operator+=(T duration) { timestamp += duration; }
+    void operator+=(T duration) { timestamp_ += duration; }
 
-    template <enum_resolution IN_RES, typename IN_T>
-    void operator+=(QuantTimeStamp<IN_RES, IN_T>& quant_time) {
-        timestamp += (quant_time.timestamp * IN_RES / RESOLUTION);
-    }
-
-    static const T nanos(T duration) {
-        return (enum_resolution::NANOS / RESOLUTION) * duration;
-    }
-    static const T micros(T duration) {
-        return (enum_resolution::MICROS / RESOLUTION) * duration;
-    }
-    static const T millis(T duration) {
-        return (enum_resolution::MILLIS / RESOLUTION) * duration;
-    }
-    static const T seconds(T duration) {
-        return (enum_resolution::SECONDS / RESOLUTION) * duration;
-    }
-    static const T minutes(T duration) {
-        return (enum_resolution::MINUTES / RESOLUTION) * duration;
-    }
-    static const T hours(T duration) {
-        return (enum_resolution::HOURS / RESOLUTION) * duration;
+    template <time_scale IN_SCALE, typename IN_T>
+    void operator+=(QuantTimeStamp<IN_SCALE, IN_T> & quant_time)
+    {
+        timestamp_ += (quant_time.timestamp_ * IN_SCALE / TIME_SCALE);
     }
 
-    const T to_nanos() {
-        return ((timestamp * RESOLUTION) / enum_resolution::NANOS);
+    /*
+    static inline const T nanos(T duration) {
+        return (time_scale::NANOS / TIME_SCALE) * duration;
     }
-    const T to_micros() {
-        return ((timestamp * RESOLUTION) / enum_resolution::MICROS);
+    static inline const T micros(T duration)
+    {
+        return (time_scale::MICROS / TIME_SCALE) * duration;
     }
-    const T to_millis() {
-        return ((timestamp * RESOLUTION) / enum_resolution::MILLIS);
+    */
+    static inline const T from_millis(T duration)
+    {
+        return (duration * time_scale::MILLIS) / TIME_SCALE;
     }
-    const T to_seconds() {
-        return ((timestamp * RESOLUTION) / enum_resolution::SECONDS);
+    static inline const T from_decis(T duration)
+    {
+        return (duration * time_scale::DECIS) / TIME_SCALE;
     }
-    const T to_minutes() {
-        return ((timestamp * RESOLUTION) / enum_resolution::MINUTES);
+    static inline const T from_quintis(T duration)
+    {
+        return duration * (time_scale::QUINTIS / TIME_SCALE);
     }
-    const T to_hours() {
-        return ((timestamp * RESOLUTION) / enum_resolution::HOURS);
+    static inline const T from_seconds(T duration)
+    {
+        return duration * (time_scale::SECONDS / TIME_SCALE);
+    }
+    static inline const T from_minutes(T duration)
+    {
+        return duration * (time_scale::MINUTES / TIME_SCALE);
+    }
+    static inline const T from_hours(T duration)
+    {
+        return duration * (time_scale::HOURS / TIME_SCALE);
+    }
+
+    /*
+    inline const T to_nanos()
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::NANOS);
+    }
+    inline const T to_micros()
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::MICROS);
+    }
+    */
+    inline const T to_millis() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::MILLIS);
+    }
+    inline const T to_decis() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::DECIS);
+    }
+    inline const T to_quintis() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::QUINTIS);
+    }
+    inline const T to_seconds() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::SECONDS);
+    }
+    inline const T to_minutes() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::MINUTES);
+    }
+    inline const T to_hours() const
+    {
+        return ((timestamp_ * TIME_SCALE) / time_scale::HOURS);
+    }
+
+    inline const pxt::ptime to_ptime_as_unix_epoched() const
+    {
+        static pxt::ptime unix_epoch__ =
+            pxt::time_from_string("1970-01-01 00:00:00.000");
+        return { unix_epoch__ + pxt::milliseconds(timestamp_ * TIME_SCALE) };
+    }
+    /*
+    inline const pxt::ptime to_ptime_with_ms_epoch(uint64_t epoch)
+    {
+        return { pxt::milliseconds(epoch + timestamp_ * TIME_SCALE) };
+    }
+    inline const pxt::ptime to_ptime_with_epoch(pxt::time_duration epoch)
+    {
+        return { epoch + pxt::milliseconds(timestamp_ * TIME_SCALE) };
+    }
+    */
+    inline const pxt::ptime to_ptime_with_epoch(pxt::ptime epoch) const
+    {
+        return { epoch + pxt::milliseconds(timestamp_ * TIME_SCALE) };
     }
 
     // // // // // //
-    T timestamp;
+    T timestamp_;
 };
 
-template <enum_resolution RES_A, typename T_A, enum_resolution RES_B,
+template <time_scale RES_A, typename T_A, time_scale RES_B,
           typename T_B>
-QuantTimeStamp<RES_A, T_A> operator+(QuantTimeStamp<RES_A, T_A>& qts_a,
-                                     QuantTimeStamp<RES_B, T_B>& qts_b) {
-    return QuantTimeStamp<RES_A, T_A>(qts_a.timestamp +
-                                      ((qts_b.timestamp * RES_B) / RES_A));
+QuantTimeStamp<RES_A, T_A> operator+(QuantTimeStamp<RES_A, T_A> & qts_a,
+                                     QuantTimeStamp<RES_B, T_B> & qts_b)
+{
+    return QuantTimeStamp<RES_A, T_A>(qts_a.timestamp_ +
+                                      ((qts_b.timestamp_ * RES_B) / RES_A));
 }
 
 typedef QuantTimeStamp<MINUTES, uint32_t> EpochMn;
 typedef QuantTimeStamp<SECONDS, uint64_t> EpochS;
 typedef QuantTimeStamp<MILLIS, uint64_t> EpochMs;
 typedef QuantTimeStamp<MILLIS, uint32_t>
-TimeStoneMs; // Can handle about 24 days
+TimeStoneMs; // Can handle about 49 days
 
 typedef QuantTimeStamp<MINUTES, uint32_t> TsMin;
 typedef QuantTimeStamp<SECONDS, uint32_t> TsS;
@@ -269,8 +355,9 @@ typedef QuantTimeStamp<NANOS, uint64_t> TsNs;
 
 /* *TODO* */
 
-N day_of_week(N d, N m, N y) {
-    static N t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+natural day_of_week(natural d, natural m, natural y)
+{
+    static natural t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
     y -= m < 3;
     return (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
 }

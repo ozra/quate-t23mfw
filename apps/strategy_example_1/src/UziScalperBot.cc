@@ -17,222 +17,19 @@
 #undef TEST_ONLY_ONE_BASE_PERIODIZATION
 
 template <class T>
-inline bool has(N val, T & obj)
+inline bool has(int val, T & obj)
 {
-    return N(val) <= obj.count();
+    return int(val) <= obj.count();
 }
 
 template <class T>
-inline bool not_yet(N val, T & obj)
+inline bool not_yet(int val, T & obj)
 {
-    return N(val) > obj.count();
+    return int(val) > obj.count();
 }
 
 typedef QuantReal QR;
 
-
-
-
-template <bool FOO = true>  // Just to keep it compiling though all inlined.. *TEMP*
-class FooTrader
-{
-  public:
-    FooTrader(QuantFeedAbstract & feed, R balance, N leverage)
-        : feed(feed)
-        , balance(balance)
-        , initial_deposit(balance)
-        , leverage(leverage)
-    {
-    }
-
-    ~FooTrader()
-    {
-        report();
-    }
-
-    void deposit(R qty)
-    {
-        balance += qty;
-    }
-    R get_equity()
-    {
-        return balance + (security_qty * ((feed.ticks().bid + feed.ticks().ask) /
-                                          2));
-    }
-    inline void handle_tick()
-    {
-        if (current_position == 0) {
-            return;
-        }
-        else if (current_position == 1) {
-            R p = feed.ticks().bid;
-            if (p > last_trail_source_price) {
-                calculate_trail_price(p);
-            }
-            if (current_stop_loss && p < current_stop_loss) {
-                cerr << "Closes long because of stop loss\n";
-                close_long();
-            }
-            else if (current_trailing_stop_delta && p < current_trailing_stop) {
-                cerr << "Closes long because of trailing stop loss\n";
-                close_long();
-            }
-        }
-        else {
-            R p = feed.ticks().ask;
-            if (p < last_trail_source_price) {
-                calculate_trail_price(p);
-            }
-            if (current_stop_loss && p > current_stop_loss) {
-                cerr << "Closes short because of stop loss\n";
-                close_short();
-            }
-            else if (current_trailing_stop_delta && p > current_trailing_stop) {
-                cerr << "Closes short because of trailing stop loss\n";
-                close_short();
-            }
-        }
-    }
-    inline void calculate_trail_price(R price)
-    {
-        last_trail_source_price = price;
-        if (current_position == 1) {
-            current_trailing_stop = price * (1 - current_trailing_stop_delta);
-        }
-        else {
-            current_trailing_stop = price * (1 + current_trailing_stop_delta);
-        }
-    }
-    bool buy(R qty_percent = 5, R stop_loss = 0, R trailing_stop = 0)
-    {
-        if (current_position == 1) {
-            //cerr << "buy: Already long!" << "\n";
-            return false;
-        }
-        else if (current_position == -1) {
-            //cerr << "buy: Is short, so we close the short before longing!" << "\n";
-            close_short();
-        }
-        // *TODO* make sure minimum lot size is reached or fail
-        current_position = 1;
-        position_entry_price = feed.ticks().ask;
-        // Check if stop_loss is given in percent
-        if (stop_loss != 0 && stop_loss < 0.2) {
-            stop_loss = feed.ticks().bid * (1 - stop_loss);
-        }
-        current_stop_loss = stop_loss;
-        current_trailing_stop_delta = trailing_stop;
-        if (trailing_stop) {
-            calculate_trail_price(feed.ticks().bid);
-        }
-        position_size = qty_percent / 100 * balance;
-        security_qty = (position_size * leverage) / position_entry_price;
-        balance -= position_size;
-        _Dn("Open long at " << position_entry_price << " = size " << security_qty *
-            position_entry_price);
-        return true;
-    }
-    bool sell(R qty_percent = 5, R stop_loss = 0, R trailing_stop = 0)
-    {
-        if (current_position == -1) {
-            //cerr << "sell: Already short!" << "\n";
-            return false;
-        }
-        else if (current_position == 1) {
-            //cerr << "sell: Is long, so we close the long before shorting!" << "\n";
-            close_long();
-        }
-        // *TODO* make sure minimum lot size is reached or fail
-        current_position = -1;
-        position_entry_price = feed.ticks().bid;
-        if (stop_loss != 0 && stop_loss < 0.2) {
-            stop_loss = feed.ticks().ask * (1 + stop_loss);
-        }
-        current_stop_loss = stop_loss;
-        current_trailing_stop_delta = trailing_stop;
-        if (trailing_stop) {
-            last_trail_source_price = feed.ticks().ask;
-            current_trailing_stop = feed.ticks().ask * (1 + current_trailing_stop_delta);
-        }
-        position_size = qty_percent / 100 * balance;
-        security_qty = (position_size * leverage) / position_entry_price;
-        balance -= position_size;
-        _Dn("Open short at " << position_entry_price << " = size " << security_qty *
-            position_entry_price);
-        return true;
-    }
-    bool close_long()
-    {
-        if (current_position != 1) {
-            cerr << "close_long: Not long, so couldn't!" << "\n";
-            return false;
-        }
-        current_position = 0;
-        current_stop_loss = 0;
-        current_trailing_stop = 0;
-        current_trailing_stop_delta = 0;
-        R got = security_qty * feed.ticks().bid - security_qty * position_entry_price;
-        balance += got;
-        transaction_times.push_back(feed.ticks().time);
-        transactions.push_back(got);
-        cerr << "closed long opened at " << position_entry_price << " on " <<
-             feed.ticks().bid << " a diff off: " << (feed.ticks().ask -
-                     position_entry_price) / position_entry_price * 100 << "\n";
-        return true;
-    }
-    bool close_short()
-    {
-        if (current_position != -1) {
-            cerr << "close_short: Not short, so couldn't!" << "\n";
-            return false;
-        }
-        current_position = 0;
-        current_stop_loss = 0;
-        current_trailing_stop = 0;
-        current_trailing_stop_delta = 0;
-        R got = -(security_qty * feed.ticks().ask - security_qty *
-                  position_entry_price);
-        balance += got;
-        transaction_times.push_back(feed.ticks().time);
-        transactions.push_back(got);
-        cerr << "closed short opened at " << position_entry_price << " on " <<
-             feed.ticks().ask << " a diff off: " << (position_entry_price -
-                     feed.ticks().ask) / position_entry_price * 100 << "\n";
-        return true;
-    }
-    void report()
-    {
-        cerr << "RESULTS OF TRADING" << "\n";
-        cerr << "\n";
-        for (N i = 0; i < transactions.size(); ++i) {
-            cerr << "trade: " << transaction_times[i] << " resulted in " << transactions[i]
-                 << "\n";
-        }
-        cerr << "\n";
-        cerr << "Finally: " << balance << " which is " << 100 *
-             (balance - initial_deposit) /
-             initial_deposit << "%" << "\n";
-        cerr << "\n";
-    }
-  private:
-    QuantFeedAbstract & feed;
-    vector<R>           transactions;
-    vector<QuantTime>   transaction_times;
-    R initial_deposit = 0;
-    R balance = 0;
-    N leverage = 0;
-    Z current_position = 0;
-    R position_entry_price = 0;
-    R position_size = 0;
-    R security_qty = 0;
-    R current_trailing_stop_delta = 0;
-    R current_trailing_stop = 0;
-    R last_trail_source_price = 0;
-    R current_stop_loss = 0;
-    R max_drawdown = 0;
-    R max_profit = 0;
-    R max_loss = 0;
-};
 
 
 using namespace QTA;
@@ -252,7 +49,7 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     string                      symbol2;
 
     QuantFeed<self>             main_feed;
-    FooTrader<true>             trader;
+    PaperTrader<true>             trader;
     QuantPeriodization<self>    ps;
 
     QuantPeriodization<self>    pm;
@@ -275,15 +72,15 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     QuantFeed<self>             feed2nd;
 
     // QuantFeed           *main_joint_feed;
-    N handled_ticks_count = 0;
-    N handled_ticks_count2 = 0;
+    natural handled_ticks_count = 0;
+    natural handled_ticks_count2 = 0;
     QR avg_roc = 0;
     QR max_roc = 0;
-    Z one_byter_roc_delta = 0;
-    Z two_byter_roc_delta = 0;
-    Z three_byter_roc_delta = 0;
-    Z four_byter_roc_delta = 0;
-    Z b12_byter_roc_delta = 0;
+    int one_byter_roc_delta = 0;
+    int two_byter_roc_delta = 0;
+    int three_byter_roc_delta = 0;
+    int four_byter_roc_delta = 0;
+    int b12_byter_roc_delta = 0;
     QR floatingEURUSD = 0;
 
     #ifdef IS_DEBUG
@@ -327,7 +124,9 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     }
 
     ~ZarScalperBot()
-    { print_summary(); }
+    {
+        print_summary();
+    }
 
     void init() final {
         //main_feed.setRegulatedInterval(ps.getPeriod());

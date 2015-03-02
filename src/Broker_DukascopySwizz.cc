@@ -27,17 +27,20 @@ namespace t23m {
 
 using namespace t23m;
 
-class DukascopyGnrlBroker : BrokerAbstract {
-   public:
+class DukascopyGnrlBroker : BrokerAbstract
+{
+  public:
     // *TODO* - temp, for reference only for napkin calcs
-    static const N TRADED_SYMBOLS = 86;
+    static const natural TRADED_SYMBOLS = 86;
 
-    auto get_instrument(cA* symbol, QuantTime time) -> Instrument override;
+    auto get_instrument(const char * symbol,
+                        QuantTime time) -> Instrument override;
 };
 
-class DukascopyEurope : DukascopyGnrlBroker {
-   public:
-    // auto get_instrument(cA* symbol, QuantTime time) -> Instrument final;
+class DukascopyEurope : DukascopyGnrlBroker
+{
+  public:
+    // auto get_instrument(const char* symbol, QuantTime time) -> Instrument final;
 };
 //}
 }
@@ -47,7 +50,11 @@ class DukascopyEurope : DukascopyGnrlBroker {
 namespace t23m {
 // namespace DUKASCOPY {
 
-const char* const traded_symbols[] = {
+
+//  *TODO*  switch to hashmap! - (2014-12-27 Oscar Campbell)
+
+char const * const traded_symbols[] = {
+    "_NIL_",
     "AUDUSD",      "EURUSD",    "GBPUSD",        "NZDUSD",       "USDCAD",
     "USDCHF",      "USDJPY",    "AUDCAD",        "AUDCHF",       "AUDJPY",
     "AUDNZD",      "CADCHF",    "CADJPY",        "CHFJPY",       "EURAUD",
@@ -68,11 +75,17 @@ const char* const traded_symbols[] = {
     "CHEIDXCHF"
 };
 
-auto DukascopyGnrlBroker::get_instrument(cA* symbol, QuantTime time)
-    -> Instrument {
-    Instrument i;
-
-    return i;
+Instrument DukascopyGnrlBroker::get_instrument(char const * const symbol,
+        QuantTime time)
+{
+    if (search_string_list_for_matching_row(traded_symbols, TRADED_SYMBOLS + 1,
+                                            symbol) == 0) {
+        return Instrument("_NIL_", 0, 0);
+    }
+    else {
+        return Instrument(symbol, 100 /* *TODO* - user and time dependant */,
+                          5 /* *TODO* symbol dependent */);
+    }
 }
 
 //! Compose an object containing both static and time dependent data for a

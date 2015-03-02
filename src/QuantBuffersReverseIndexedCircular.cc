@@ -9,58 +9,59 @@
 #include "QuantBuffersBase.hh"
 
 template <typename T>
-class ReversedCircularStructBuffer {
-   public:
-    ReversedCircularStructBuffer(size_t psize)
+class ReversedCircularStructBuffer
+{
+  public:
+    ReversedCircularStructBuffer(ff_size_t psize)
         : capacity{ psize }
         , buffer{ new T[psize] }
-        , head_ptr{ buffer - 1 }
+    , head_ptr{ buffer - 1 }
     // We increase it by one in first "advance" before reading / writing
     {}
 
     ~ReversedCircularStructBuffer() { delete[] buffer; }
 
-    inline operator T&() { return *head_ptr; }
+    inline operator T & () { return *head_ptr; }
     //inline operator const T&() { return *head_ptr; }
 
-    inline T& operator()() { return *head_ptr; }
-    inline const T& last_as_const() const { return *head_ptr; } 
+    inline T & operator()() { return *head_ptr; }
+    inline const T & last_as_const() const { return *head_ptr; }
 
     inline void set(T value) { *head_ptr = value; }
 
-    inline T& operator[](N backwards_index) const {
-#if IS_DEBUG
+    inline T & operator[](int backwards_index) const
+    {
+        #if IS_DEBUG
         if (backwards_index > size - 1) {
             cerr << "\nIndex overflow in ReverseBuffer: " << backwards_index
                  << " vs size-1: " << size - 1 << "\n";
             throw _bad_quantbuffer_indexing_; // *TODO*
         }
-#endif
-
-        Z ix = pos - Z(backwards_index);
-
+        #endif
+        int ix = pos - int(backwards_index);
         if (ix >= 0) {
             return buffer[ix];
-        } else {
+        }
+        else {
             // ix += capacity;
             return buffer[ix + capacity];
         }
     }
 
-    inline T& operator[](N backwards_index) {
-#if IS_DEBUG
+    inline T & operator[](int backwards_index)
+    {
+        #if IS_DEBUG
         if (backwards_index > size - 1) {
             cerr << "\nIndex overflow in ReverseBuffer: " << backwards_index
                  << " vs size-1: " << size - 1 << "\n";
             throw _bad_quantbuffer_indexing_; // *TODO*
         }
-#endif
-
-        Z ix = pos - Z(backwards_index);
-
+        #endif
+        int ix = pos - int(backwards_index);
         if (ix >= 0) {
             return buffer[ix];
-        } else {
+        }
+        else {
             // ix += capacity;
             return buffer[ix + capacity];
         }
@@ -70,36 +71,36 @@ class ReversedCircularStructBuffer {
         // return buffer[ix];
     }
 
-    inline T& advance() { // return reference to [0] from here...
+    inline T & advance()  // return reference to [0] from here...
+    {
         ++head_ptr;
-        if (N(++pos) >= capacity) {
+        if (int(++pos) >= capacity) {
             pos = 0;
             head_ptr = buffer;
         }
-
         if (size < capacity) {
             ++size;
         }
-
         return *head_ptr;
     }
 
-    inline void reset() {
+    inline void reset()
+    {
         pos = 0;
         size = 0;
     }
 
-    inline size_t count() { return size; }
+    inline ff_size_t count() { return size; }
 
     // private:
-    size_t capacity;
-    size_t size = 0;
+    ff_size_t capacity;
+    ff_size_t size = 0;
 
-   private:
-    Z pos = -1; // We can't make it ofs_t because we need negative number in
-                  // init *TODO*
-    T* buffer;
-    T* head_ptr;
+  private:
+    int pos = -1; // We can't make it ofs_t because we need negative number in
+    // init *TODO*
+    T * buffer;
+    T * head_ptr;
 };
 
 #endif

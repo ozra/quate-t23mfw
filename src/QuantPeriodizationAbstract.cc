@@ -9,8 +9,8 @@
 #include "QuantBase.hh"
 #include "QuantTime.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedBuffer.hh"
+#include "QuantBuffersIntertwinedHeap.hh"
+#include "QuantBuffersIntertwinedBuffer.hh"
 #include "QuantFeed.hh"
 
 #include "HardSignal.hh"
@@ -25,6 +25,19 @@
  *
  *
  *
+
+ * *TODO*
+ - This is HIGHLY flawed! It should:
+    - NOT be the candle integrator - ONLY do periodization - and could be a simple call like "TrueEvery" OR do emit() and use callbacking..
+    - Take param RESPECT_BREAKS, in if not, fill out the void in an appropriate way (confed: repeat last candle as ghost, or interpolate to first after break, or extrapolate from third source)
+    - probably be part of the Chronologizer that zips chronological event streams together..
+    - The candle integrator should be separate and should:
+        - create candles from tick: ask OR bid OR both
+        - create candles from trades: buys OR sells OR (most common) both
+        - create candles from other candles
+        - spread should be ditched
+        - ask/bid volume should be replaced with sole volume
+
 
 * LOOKUP DOXYGEN / SIMILAR BEST SUITED INLINE DOCUMENTATION
 
@@ -56,24 +69,24 @@ class QuantPeriodizationAbstract
 
     /*
     QuantPeriodizationAbstract(
-        R period, QuantPeriodizationAbstract & quant_period, N lookback,
+        real period, QuantPeriodizationAbstract & quant_period, ff_size_t lookback,
         QuantMultiKeeperJar * the_jar = global_actives.active_jar);
     */
     QuantPeriodizationAbstract(
-        R period, N lookback,
+        real period, ff_size_t lookback,
         QuantMultiKeeperJar * the_jar = global_actives.active_jar);
     QuantPeriodizationAbstract(
-        R period, QuantFeedAbstract & quant_feed, N lookback,
+        real period, QuantFeedAbstract & quant_feed, ff_size_t lookback,
         QuantMultiKeeperJar * the_jar = global_actives.active_jar);
 
     ~QuantPeriodizationAbstract();
 
-    void commonInit(R p_period);
+    void commonInit(real p_period);
 
     void set_date_range(QuantTime start_date, QuantTime end_date);
 
     void add(QuantBufferAbstract & buffer);
-    void add(QuantBufferAbstract & buffer, size_t default_buf_size);
+    void add(QuantBufferAbstract & buffer, ff_size_t default_buf_size);
 
     #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_PERIODIZATIONS
     /*
@@ -90,7 +103,7 @@ class QuantPeriodizationAbstract
     // // // - -  // // //
     // // // VARS // // //
     // // // - -  // // //
-    QuantBufferSynchronizedHeap buffer_heap;
+    QuantBufferIntertwinedHeap buffer_heap;
 
     // *TODO*  time could perhaps be implemented as a calculated value instead!
     // We simply store session-breaks times - or a representation for that
@@ -120,7 +133,7 @@ class QuantPeriodizationAbstract
     virtual void emit_signal() = 0;
 
     /*
-    inline R progressingCompletion () {
+    inline real progressingCompletion () {
         // *TODO* calculate progressed time between progressing-time-start and
     next-per-time - based on last received tick
         // Return as 0.0 - 1.0
@@ -178,12 +191,7 @@ class QuantPeriodizationAbstract
     {
         //_Dn("<" << period << "> accumulate_from_source_candle() " <<
         //    per.time.last_as_const().time_of_day()); // << ": " << per.close);
-        //const auto candle_end_time_boundary = per.time.last_as_const() + per.getPeriod();
-        // accumulate_tickish(per.progressingTime(), per.open, per.high, per.low,
-        //                per.close,
-        //                per.tick_volume, per.ask_volume, per.bid_volume,
-        //                per.spread);
-        // ltE when the source is a candle - 2014-12-03/Oscar Campbell
+        // lte when the source is a candle - 2014-12-03/Oscar Campbell
         if (per.progressingTime() <= next_bar_time) {
             // It's still an update to the open bar
             if (progressing_tick_volume > 0) {
@@ -212,9 +220,9 @@ class QuantPeriodizationAbstract
     /*
      * *TODO* *BUBBLARE*
      */
-    inline N barCount() { return cached_bars; }
-    inline N candleCount() { return cached_bars; }
-    inline N count() { return cached_bars; }
+    inline ff_size_t barCount() { return cached_bars; }
+    inline ff_size_t candleCount() { return cached_bars; }
+    inline ff_size_t count() { return cached_bars; }
     /*
      *
      */
@@ -443,37 +451,26 @@ class QuantPeriodizationAbstract
     QuantDuration epoch_duration;
     QuantTime next_bar_time = dt::min_date_time;
 
-    // R pretty_period;   // For cerr / debugging
+    // real pretty_period;   // For cerr / debugging
 
-    size_t default_buf_size = 0;
-    size_t capacity = 0;
-    N total_bars = 0; // total bars processed in running time, may be higher
+    ff_size_t default_buf_size = 0;
+    ff_size_t capacity = 0;
+    ff_size_t total_bars =
+        0; // total bars processed in running time, may be higher
     // than actual cached bars because of buffer roll-out
-    N cached_bars = 0;
-    // Z open_bar_is_pure_ghost;     // while only ghost ticks has formed the
+    ff_size_t cached_bars = 0;
+    // int open_bar_is_pure_ghost;     // while only ghost ticks has formed the
     // bar - we are open to re-set it to first _real_ tick for open...
     // WE IGNORE this for now...
 
-    N real_tick_closes = 0;
-    N ghost_tick_closes = 0;
+    ff_size_t real_tick_closes = 0;
+    ff_size_t ghost_tick_closes = 0;
 };
 
 #endif
 
-/*
 QuantPeriodizationAbstract::QuantPeriodizationAbstract(
-    R period, QuantPeriodizationAbstract & period_feed, N lookback,
-    QuantMultiKeeperJar * the_jar)
-    : buffer_heap{ lookback }
-    , the_jar{ the_jar } //, period_feed{ &period_feed }
-    , default_buf_size{ lookback }
-    , capacity{ lookback }
-{
-    commonInit(period);
-}
-*/
-QuantPeriodizationAbstract::QuantPeriodizationAbstract(
-    R period, N lookback,
+    real period, ff_size_t lookback,
     QuantMultiKeeperJar * the_jar)
     : buffer_heap{ lookback }
     , the_jar{ the_jar } //, period_feed{ &period_feed }
@@ -483,7 +480,7 @@ QuantPeriodizationAbstract::QuantPeriodizationAbstract(
     commonInit(period);
 }
 QuantPeriodizationAbstract::QuantPeriodizationAbstract(
-    R p_period, QuantFeedAbstract & quant_feed, N lookback,
+    real p_period, QuantFeedAbstract & quant_feed, ff_size_t lookback,
     QuantMultiKeeperJar * the_jar)
     : buffer_heap{ lookback }
     , the_jar{ the_jar } //, quant_feed{ &quant_feed }
@@ -505,10 +502,10 @@ QuantPeriodizationAbstract::~QuantPeriodizationAbstract()
     #endif
 }
 
-void QuantPeriodizationAbstract::commonInit(R p_period)
+void QuantPeriodizationAbstract::commonInit(real p_period)
 {
     the_jar->add(this);
-    // Z default_buf_size = PERIODIZATION_DEFAULT_SIZE;
+    // int default_buf_size = PERIODIZATION_DEFAULT_SIZE;
     if (p_period >= 1) {
         period = pxt::minutes(p_period); // Passed in minutes, store as tX
     }
@@ -556,7 +553,7 @@ void QuantPeriodizationAbstract::add(QuantBufferAbstract & buffer)
 }
 
 void QuantPeriodizationAbstract::add(QuantBufferAbstract & buffer,
-                                     size_t default_buf_size)
+                                     ff_size_t default_buf_size)
 {
     buffer_heap.add(buffer, default_buf_size);
 }

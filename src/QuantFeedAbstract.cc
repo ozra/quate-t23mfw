@@ -17,15 +17,15 @@
 #include "QuantBase.hh"
 #include "QuantStudyContextAbstract.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedBufferAbstract.hh"
+#include "QuantBuffersIntertwinedHeap.hh"
+#include "QuantBuffersIntertwinedBufferAbstract.hh"
 #include "QuantBuffersReverseIndexedCircular.hh"
-#include "QuantTick.hh"
+#include "QuantElementModel_Tick.hh"
 
 //#include "QuantSequentialData.hh"
-#include "SQDI_Ticks_Abstract.hh"
-#include "SQDI_Ticks_Dukascopy.hh"
-#include "SQDI_Ticks_T23M.hh"
+#include "QSDF_Ticks_Abstract.hh"
+//#include "QSDF_Ticks_Dukascopy.hh"
+#include "QSDF_Ticks_T23M.hh"
 
 // # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 // #
@@ -54,12 +54,12 @@ class QuantFeedAbstract
     );
      */
 
-    QuantFeedAbstract(S broker_id, string symbol_id, Z lookback = 0,
+    QuantFeedAbstract(string broker_id, string symbol_id, int lookback = 0,
                       QuantMultiKeeperJar * the_jar = global_actives.active_jar);
 
     ~QuantFeedAbstract();
 
-    void setRegulatedInterval(R p_regulated_interval);
+    void setRegulatedInterval(real p_regulated_interval);
     void set_date_range(QuantTime start_date, QuantTime end_date);
     void setLiveMode();
 
@@ -83,14 +83,15 @@ class QuantFeedAbstract
 
     /*
     struct {
-        inline operator [] ( Z ix ) {
+        inline operator [] ( int ix ) {
             return ticks[ix].ask;
         }
     } ask;
     */
 
-    // SQDI_Ticks_Dukascopy *sequential_data_interface;
-    SQDI_Ticks_Abstract * sequential_data_interface;
+    // QSDF_Ticks_Dukascopy *sequential_data_interface;
+    //QSDF_Ticks_Abstract * sequential_data_interface;
+    QSDF_Ticks_T23M sequential_data_interface;  // 2015-02-16/Oscar Campbell
 
     #ifdef IS_DEBUG
     inline void reset_debug_counts()
@@ -99,8 +100,8 @@ class QuantFeedAbstract
         ghost_tick_count = 0;
     }
 
-    Z real_tick_count = 0;
-    Z ghost_tick_count = 0;
+    int real_tick_count = 0;
+    int ghost_tick_count = 0;
 
     #endif
 
@@ -111,7 +112,7 @@ class QuantFeedAbstract
     string broker_id;
     string symbol_id;
 
-    //Z lookback;
+    //int lookback;
     FeedState state = UNDEF;
     QuantTime start_date;
     QuantTime end_date;
@@ -119,9 +120,9 @@ class QuantFeedAbstract
     QuantDuration regulated_interval =
         pxt::hours(999999); // pxt::max_date_time; // *TODO* -->
     // numbers<QuantTime>.max_value;
-    // Z                 day_epoch_offset = 0;
+    // int                 day_epoch_offset = 0;
 
-    L do_debug_the_time = false;
+    bool do_debug_the_time = false;
 };
 
 inline void debug_a_tick(QuantTick & tick)
@@ -145,12 +146,13 @@ QuantFeedAbstract::QuantFeedAbstract (
 , symbol_id( symbol_id )
 {
     global_actives.active_feed = this;
-    sequential_data_interface = new SQDI_Ticks_Dukascopy();
+    sequential_data_interface = new QSDF_Ticks_Dukascopy();
     context->add( this );
 }
 */
 
-QuantFeedAbstract::QuantFeedAbstract(S broker_id, string symbol_id, Z lookback,
+QuantFeedAbstract::QuantFeedAbstract(string broker_id, string symbol_id,
+                                     int lookback,
                                      QuantMultiKeeperJar * the_jar)
     : ticks(lookback + 2)
       // +1 for current tick, +1 for prev. tick
@@ -159,22 +161,26 @@ QuantFeedAbstract::QuantFeedAbstract(S broker_id, string symbol_id, Z lookback,
     , symbol_id{ symbol_id }
       //, lookback{ lookback }
 {
-    global_actives.active_feed = this; // *TODO* pass the "global_actives" as
+    global_actives.active_feed = this;
+    // *TODO* pass the "global_actives" as
     // param (could then ofcourse be set as
     // default param) 141013/ORC
-    // *TODO* this has NOTHING to do in QuantFeedAbstract!!!
+    /*
+    // *DONE* this has NOTHING to do in QuantFeedAbstract!!!
     if (broker_id == "DUKASCOPY") {
         _Dn("Instantiates T23M tick source");
-        sequential_data_interface = new SQDI_Ticks_T23M();
+        sequential_data_interface = new QSDF_Ticks_T23M();
     }
     else if (broker_id == "DUKASCOPY_RAW") {
         _Dn("Instantiates Dukascopy RAW tick source");
-        sequential_data_interface = new SQDI_Ticks_Dukascopy();
+        sequential_data_interface = new QSDF_Ticks_Dukascopy();
     }
     else {
         _Dn("Instantiates T23M tick source by defaulting");
-        sequential_data_interface = new SQDI_Ticks_T23M();
+        sequential_data_interface = new QSDF_Ticks_T23M();
     }
+    */
+    //sequential_data_interface = new QSDF_Ticks_T23M();
     the_jar->add(this);
 }
 
@@ -201,26 +207,26 @@ auto QuantFeedAbstract::set_date_range(QuantTime p_start_date,
     next_regulated_tick_time = start_date;
 
     // *TODO* PROPER PLACEMENT!
-    sequential_data_interface->set_date_range(start_date, end_date);
-    sequential_data_interface->init(broker_id, symbol_id);
+    sequential_data_interface.set_date_range(start_date, end_date);
+    sequential_data_interface.init(broker_id, symbol_id);
 
     /*
         if ( broker_id == "DUKASCOPY" ) {
-            ( (SQDI_Ticks_Dukascopy *)
+            ( (QSDF_Ticks_Dukascopy *)
        sequential_data_interface)->init( symbol_id );
 
         } else if ( broker_id == "DUKASCOPY_RAW" ) {
-            ( (SQDI_Ticks_Dukascopy *)
+            ( (QSDF_Ticks_Dukascopy *)
        sequential_data_interface)->init( symbol_id );
 
         } else {
-            ( (SQDI_Ticks_Dukascopy *)
+            ( (QSDF_Ticks_Dukascopy *)
        sequential_data_interface)->init( symbol_id );
         }
     */
 }
 
-void QuantFeedAbstract::setRegulatedInterval(R p_regulated_interval)
+void QuantFeedAbstract::setRegulatedInterval(real p_regulated_interval)
 {
     // *TODO* *DUPE* *DRY* ( QuantFeed : commonInit() )
     if (p_regulated_interval >= 1) {
@@ -242,7 +248,7 @@ void QuantFeedAbstract::setRegulatedInterval(R p_regulated_interval)
 }
 
 /*
-void QuantFeed::onRegulatedTick ( R32 p_regulated_interval,
+void QuantFeed::onRegulatedTick ( real32 p_regulated_interval,
 boost::function<void()> callback )
 {
     setRegulatedInterval( p_regulated_interval );
@@ -257,7 +263,7 @@ void QuantFeedAbstract::onRegulatedTick ( boost::function<void()> callback )
 }
 */
 
-L QuantFeedAbstract::readNext()
+bool QuantFeedAbstract::readNext()
 {
     // cerr << "readNext() - Advance ticks" << "\n";
     if (LIKELY(has_buffered == false)) {
@@ -268,9 +274,9 @@ L QuantFeedAbstract::readNext()
         #endif
 // cerr << "r";
         #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
-        L ret = sequential_data_interface->readTick(tick);
+        bool ret = sequential_data_interface.readTick(tick);
         #else
-        L ret = sequential_data_interface->readTick(*tick);
+        bool ret = sequential_data_interface.readTick(*tick);
         #endif
         #ifdef IS_DEEPBUG
         if (!do_debug_the_time) {
@@ -285,7 +291,7 @@ L QuantFeedAbstract::readNext()
                 cerr << "Last in buffer for " << symbol_id << " (" << ticks.size
                      << "): "
                      << "\n";
-                for (Z ix = ticks.size - 1; ix >= 0; --ix) {
+                for (int ix = ticks.size - 1; ix >= 0; --ix) {
                     debug_a_tick(ticks[ix]);
                 }
                 throw 474747;

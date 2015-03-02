@@ -9,12 +9,14 @@
 #include "QuantBase.hh"
 #include "QuantTime.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedBuffer.hh"
+#include "QuantBuffersIntertwinedHeap.hh"
+#include "QuantBuffersIntertwinedBuffer.hh"
 #include "QuantBuffersReverseIndexedCircular.hh"
 #include "QuantFeed.hh"
 #include "QuantPeriodization.hh"
 #include "QuantStudyContextBase.hh"
+
 #include "QuantTradeDesk.hh"
+#include "QuantTrader_Paper.hh"
 
 #endif

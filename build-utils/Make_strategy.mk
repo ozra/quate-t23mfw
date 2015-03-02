@@ -83,7 +83,9 @@ bin/DbgDev/strategy_standalone: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
 	$(T23MFW_LINKER_DBGDEV) $(STRATEGY_LINK_FLAGS) \
 		-o $@ \
 		$(ALL_OBJ_FILES_DBGDEV) \
-		$(STRATEGY_LIBS)
+		$(STRATEGY_LIBS) \
+	&& rm -rf src/*.orig ext/T23MFW/src/*.orig
+
 objs/DbgDev/include/%.hh: %.cc
 	$(ASTYLING) $< \
 	&& noah-cpp --fixed-path -o 'objs/DbgDev/include/' $<
@@ -96,7 +98,9 @@ objs/DbgDev/%.o: %.cc
 bin/DevFast/strategy_standalone: $(ALL_HH_FILES_DEVFAST) $(ALL_OBJ_FILES_DEVFAST)
 		$(T23MFW_LINKER_DEVFAST) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_DEVFAST) \
-		$(STRATEGY_LIBS)
+		$(STRATEGY_LIBS) \
+	&& rm -rf src/*.orig ext/T23MFW/src/*.orig
+
 objs/DevFast/include/%.hh: %.cc
 	$(ASTYLING) $< \
 	&& noah-cpp --fixed-path -o 'objs/DevFast/include/' $<
@@ -124,7 +128,9 @@ objs/DevFast/%.o: %.cc
 bin/NoBelt/strategy_standalone: $(ALL_HH_FILES_NOBELT) $(ALL_OBJ_FILES_NOBELT)
 	$(T23MFW_LINKER_NOBELT) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_NOBELT) \
-		$(STRATEGY_LIBS)
+		$(STRATEGY_LIBS) \
+	&& rm -rf src/*.orig ext/T23MFW/src/*.orig
+
 objs/NoBelt/include/%.hh: %.cc
 	$(ASTYLING) $< \
 	&& noah-cpp --fixed-path -o 'objs/NoBelt/include/' $<

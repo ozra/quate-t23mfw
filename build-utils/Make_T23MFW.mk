@@ -1,61 +1,73 @@
 
 T23SRC:=$(T23MFW_ROOT)/src
-T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc)
-#T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc) $(wildcard $(T23SRC)/QuantTA/*.cc)
+#T23MFW_CC_FILES := $(wildcard $(T23SRC)/*.cc)
 
 # generate deps:
 # clang++ -std=c++11 -MM -I/windzone/T5-test-strategy/include  SOME_FILE.cc
 
-# T23MFW_CC_FILES := \
-# 	Broker_DukascopySwizz.cc \
-# 	EtcUtils.cc \
-# 	HardSignal.cc \
-# 	MutatingBuffer.cc \
-# 	MutatingString.cc \
-# 	QTABase.cc \
-# 	QTA.cc \
-# 	QTA_Ema.cc \
-# 	QTA_Highest.cc \
-# 	QTA_Lowest.cc \
-# 	QTA_ObjectAbstract.cc \
-# 	QTA_PeriodTickMean.cc \
-# 	QuantBase.cc \
-# 	QuantBasic_DESIGN_CHOICES.cc \
-# 	QuantBasicTypes.cc \
-# 	QuantBuffersBase.cc \
-# 	QuantBuffersReverseIndexedCircular.cc \
-# 	QuantBuffersSynchronizedBufferAbstract.cc \
-# 	QuantBuffersSynchronizedBuffer.cc \
-# 	QuantBuffersSynchronizedHeap.cc \
-# 	QuantExecutionContext.cc \
-# 	QuantExecutionRetroactive.cc \
-# 	QuantExecution_standalone_main.cc \
-# 	QuantFeedAbstract.cc \
-# 	QuantFeed.cc \
-# 	QuantInstrument.cc \
-# 	QuantObjectManagers.cc \
-# 	QuantPeriodizationAbstract.cc \
-# 	QuantPeriodization.cc \
-# 	QuantProfiling.cc \
-# 	SQDI_DukascopyInterfaceCode.cc \
-# 	SQDI_Ticks_Dukascopy.cc \
-# 	QuantSequentialDataPrefetcher.cc \
-# 	SQDI_QuledAbstract.cc \
-# 	SQDI_SyntheticTriangleWaveDebug_Ticks.cc \
-# 	SQDI_Ticks_T23M.cc \
-# 	SQDI_Ticks_Abstract.cc \
-# 	QuantSequentialDataUtils.cc \
-# 	QuantStudyContextAbstract.cc \
-# 	QuantStudyContextBase.cc \
-# 	QuantSuit.cc \
-# 	QuantSymbolsRegistry.cc \
-# 	QuantTick.cc \
-# 	QuantTime.cc \
-# 	QuantTradeDesk.cc \
-# 	rfx11_lib_debug.cc \
-# 	rfx11_types.cc \
-# 	Seqdacon_standalone_main.cc \
-# 	SwiftSignal.cc
+T23MFW_CC_FILES := \
+	QuantBasic_DESIGN_CHOICES.cc \
+	rfx11_types.cc \
+	rfx11_lib_debug.cc \
+	Profiling.cc \
+	QuantTime.cc \
+	HardClosure.cc \
+	Broker_DukascopySwizz.cc \
+	QTA_PeriodTickMean.cc \
+	QuantBuffersIntertwinedBuffer.cc \
+	QuantInstrument.cc \
+	QuantSymbolsRegistry.cc \
+	Broker_Huobi.cc \
+	QSDF_Utils.cc \
+	QSDF_Prefetcher.cc \
+	QSDF_MmapBuffer.cc \
+	QSDF_BaseAbstract.cc \
+	QSDF_Sys_T23M_Abstract.cc \
+	QSDF_Ticks_Abstract.cc \
+	QSDF_Ticks_T23M.cc \
+	QSDF_SyntheticTriangleWaveDebug_Ticks.cc \
+	QuantBuffersIntertwinedHeap.cc \
+	QuantObjectManagers.cc \
+	QuantElementModel_Tick.cc \
+	SwiftSignal.cc \
+	EtcUtils.cc \
+	QTABase.cc \
+	QuantBase.cc \
+	QuantBuffersReverseIndexedCircular.cc \
+	QuantPeriodizationAbstract.cc \
+	QuantExecutionContext.cc \
+	QuantPeriodization.cc \
+	QuantTradeDesk.cc \
+	HardSignal.cc \
+	QuantBasicTypes.cc \
+	QuantExecutionRetroactive.cc \
+	QuantProfiling.cc \
+	QuantTrader_Paper.cc \
+	MutatingBuffer.cc \
+	QuantBroker.cc \
+	QuantStudyContextAbstract.cc \
+	MutatingString.cc \
+	QuantBuffersBase.cc \
+	QuantFeedAbstract.cc \
+	QuantStudyContextBase.cc \
+	QTA_ObjectAbstract.cc \
+	QuantBuffersIntertwinedBufferAbstract.cc \
+	QuantFeed.cc \
+	QuantSuit.cc \
+	QTA.cc \
+	QTA_StdDev.cc \
+	QTA_Highest.cc \
+	QTA_Lowest.cc \
+	QTA_Ema.cc \
+	Seqdacon_standalone_main.cc \
+	Verifier_standalone_main.cc \
+	PriceHunter_standalone_main.cc \
+	QuantExecution_standalone_main.cc
+
+FOO_FILES := \
+	QSDF_Sys_DukascopyFormat_FsInterface.cc \
+	QSDF_Ticks_Dukascopy.cc \
+	RequestUrl.cc
 
 
 T23MFW_OBJ_FILES_DBGDEV := $(addprefix objs/DbgDev/,$(notdir $(T23MFW_CC_FILES:.cc=.o)))
@@ -110,11 +122,16 @@ T23MFW_LINKER_DEVFAST=g++ -W -Wall -std=c++11 \
 
 
 # # # # # # # # # NOBELT # # # # # # # # # # # #
+
+# *TODO* - try  -ffinite-math-only \
+
 T23MFW_COMPILER_NOBELT_GCC=ccache g++ \
 						-W -Wall -std=c++11 \
 						-Werror=return-type \
 						-Ofast -march=native \
-						-fomit-frame-pointer -ffast-math -flto \
+						-fomit-frame-pointer \
+						-ffast-math \
+						-flto \
 						-funsafe-loop-optimizations \
 						-fno-default-inline \
 						-DNDEBUG -DIS_NOBELT \

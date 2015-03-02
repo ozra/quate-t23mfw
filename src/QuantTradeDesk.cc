@@ -32,18 +32,19 @@ typedef String OrderForeignId;
 struct CostModel {
     bool free_market_terms = false;
     bool contractual_position_based = true;
-    R fee_percentage = 0;
-    R fee_fixed = 0;
+    real fee_percentage = 0;
+    real fee_fixed = 0;
     bool pay_spread = true;
 
     // *TODO* we need leverage on every symbol (?) or just make more costmodels,
     // ALSO varies with time!!!
     // "inherit"
-    N leverage = 0;
+    natural leverage = 0;
 };
 
 // Singleton -
-class BrokerManager {
+class BrokerManager
+{
     // BrokerManager();
 
     // *TODO*
@@ -112,21 +113,23 @@ enum TransactionType {
 };
 */
 
-class Order {
+class Order
+{
     // *TODO*
 };
 
-class Transaction {
-   public:
+class Transaction
+{
+  public:
     Transaction(TransactionType type, CurrencyNumberCode base_currency,
                 QuantReal base_currency_change, SecurityNumberCode instrument,
                 QuantReal instrument_change);
 
-   private:
+  private:
     TransactionType type;
     CurrencyNumberCode base_currency; // In case of brokers allowing multiple
-                                      // BaseCurrency-BrokerAccounts  in the
-                                      // TradingBrokerAccount
+    // BaseCurrency-BrokerAccounts  in the
+    // TradingBrokerAccount
     QuantReal base_currency_change;
     SecurityNumberCode instrument;
     QuantReal instrument_change;
@@ -137,13 +140,14 @@ class Transaction {
 
 
 // Represents an account on a broker
-class BrokerAccount {
-   public:
+class BrokerAccount
+{
+  public:
     BrokerAccount();
     ~BrokerAccount();
 
-    R get_balance(CurrencyNumberCode currency); //  = primary_currency_);
-    R get_equity();
+    real get_balance(CurrencyNumberCode currency); //  = primary_currency_);
+    real get_equity();
 
     // // //
     string broker_id;
@@ -157,58 +161,69 @@ class BrokerAccount {
     CurrencyNumberCode primary_currency_;
 
     // *TODO* proper datatype...
-    //std::map<CurrencyNumberCode, R> balances_;
-    R balances_[TOTAL_SYMBOL_COUNT];
+    //std::map<CurrencyNumberCode, real> balances_;
+    real balances_[TOTAL_SYMBOL_COUNT];
 
     // QuantReal                           positioned_funds;
     // QuantReal                           positions_value;
 };
 
-class TradeDeskAbstract {
-   public:
-    TradeDeskAbstract ();
-    TradeDeskAbstract (string broker, string user, string pass);
+class TradeDeskAbstract
+{
+  public:
+    TradeDeskAbstract();
+    TradeDeskAbstract(string broker, string user, string pass);
     // virtual ~TradeDeskAbstract () = 0;
 
-    virtual OrderId testing_buy(R qty) = 0;
-    virtual OrderId testing_sell(R qty) = 0;
+    virtual OrderId testing_buy(real qty) = 0;
+    virtual OrderId testing_sell(real qty) = 0;
     virtual bool testing_close(OrderId order_id) = 0;
 
-    virtual OrderId placeOrder(OrderType order_type, R price, R qty,
+    virtual OrderId placeOrder(OrderType order_type, real price, real qty,
                                QuantTime deadline) = 0;
 
-    virtual OrderId buyMarket(R qty, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId sellMarket(R qty, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId buyLimit(R qty, R price, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId sellLimit(R qty, R price, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId buyStop(R qty, R price, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId sellStop(R qty, R price, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId buyTrailStop(R qty, R distance, N slippage, N magic_number_id = 0) = 0;
-    virtual OrderId sellTrailStop(R qty, R distance, N slippage, N magic_number_id = 0) = 0;
+    virtual OrderId buyMarket(real qty, natural slippage,
+                              natural magic_number_id = 0) = 0;
+    virtual OrderId sellMarket(real qty, natural slippage,
+                               natural magic_number_id = 0) = 0;
+    virtual OrderId buyLimit(real qty, real price, natural slippage,
+                             natural magic_number_id = 0) = 0;
+    virtual OrderId sellLimit(real qty, real price, natural slippage,
+                              natural magic_number_id = 0) = 0;
+    virtual OrderId buyStop(real qty, real price, natural slippage,
+                            natural magic_number_id = 0) = 0;
+    virtual OrderId sellStop(real qty, real price, natural slippage,
+                             natural magic_number_id = 0) = 0;
+    virtual OrderId buyTrailStop(real qty, real distance, natural slippage,
+                                 natural magic_number_id = 0) = 0;
+    virtual OrderId sellTrailStop(real qty, real distance, natural slippage,
+                                  natural magic_number_id = 0) = 0;
 
     virtual OrderStatus orderStatus(OrderId order_id) = 0;
     virtual bool cancelOrder(OrderId order_id) = 0;
-    virtual vector<OrderId>* getOpenOrders() = 0;
+    virtual vector<OrderId> * getOpenOrders() = 0;
 
-    R get_balance();
-    R get_usable_funds();
+    real get_balance();
+    real get_usable_funds();
 };
 
-class TradeDeskSimulator : public TradeDeskAbstract {
-   public:
+class TradeDeskSimulator : public TradeDeskAbstract
+{
+  public:
     virtual OrderId testing_buy(QuantReal qty);
     virtual OrderId testing_sell(QuantReal qty);
     virtual bool testing_close(OrderId order_id);
 
-    N level_of_pessimism = 3; // How hard we are on criterions on the ticks to
-                                // decide if a level would reach a deal or not -
-                                // 2014-10-21/ORC
-    R find_worst_price_time_window =
+    natural level_of_pessimism =
+        3; // How hard we are on criterions on the ticks to
+    // decide if a level would reach a deal or not -
+    // 2014-10-21/ORC
+    real find_worst_price_time_window =
         500; // How long past the order do we look for a worst price?
 
-    R fee_percentage_taker;
-    R fee_percentage_maker;
-    R fee_fixed;
+    real fee_percentage_taker;
+    real fee_percentage_maker;
+    real fee_fixed;
     bool pay_the_spread;
 };
 }
@@ -218,7 +233,8 @@ class TradeDeskSimulator : public TradeDeskAbstract {
 namespace t23m {
 
 
-Transaction::Transaction(TransactionType type, CurrencyNumberCode base_currency,
+Transaction::Transaction(TransactionType type,
+                         CurrencyNumberCode base_currency,
                          QuantReal base_currency_change,
                          SecurityNumberCode instrument,
                          QuantReal instrument_change)
@@ -229,17 +245,20 @@ Transaction::Transaction(TransactionType type, CurrencyNumberCode base_currency,
     , instrument_change{ instrument_change } {}
 
 
-QuantReal calculate_the_actual_buy_price() {
+QuantReal calculate_the_actual_buy_price()
+{
     // Just fucking bogus to remind of what to do - *TODO*
     return 47.47;
 }
 
-QuantReal calculate_the_actual_sell_price() {
+QuantReal calculate_the_actual_sell_price()
+{
     // Just fucking bogus to remind of what to do - *TODO*
     return 47.47;
 }
 
-OrderId TradeDeskSimulator::testing_buy(QuantReal qty) {
+OrderId TradeDeskSimulator::testing_buy(QuantReal qty)
+{
     QuantReal p = calculate_the_actual_buy_price();
     /*
     *TODO*
@@ -248,25 +267,24 @@ OrderId TradeDeskSimulator::testing_buy(QuantReal qty) {
     return 4747;
 }
 
-OrderId TradeDeskSimulator::testing_sell(QuantReal qty) {
+OrderId TradeDeskSimulator::testing_sell(QuantReal qty)
+{
     QuantReal p = calculate_the_actual_sell_price();
-
     /*
     *TODO*
     transactions.push_back(Transaction(SELL_TAKE, qty * p, -qty));
     */
-
     return 4747;
 }
 
-bool TradeDeskSimulator::testing_close(OrderId order_id) {
-
+bool TradeDeskSimulator::testing_close(OrderId order_id)
+{
     // *TODO*
-
     if (order_id == (0 + order_id + 47 - 47)) {
         // Close a matching position
         return true;
-    } else {
+    }
+    else {
         return false;
     }
 }

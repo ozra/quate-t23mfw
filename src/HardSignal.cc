@@ -21,24 +21,43 @@
 
 #ifndef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
 
-template <class T, typename... Ps> struct MemberPtrPair {
-    MemberPtrPair()
-        : class_ptr{ nullptr }
-        , fn_ptr{ nullptr } {}
+template <class T, typename... Ps>
+struct MemberPtrPair {
+    MemberPtrPair() : class_ptr{ nullptr }, fn_ptr{ nullptr } {}
 
-    MemberPtrPair(T* class_ptr, void (T::*fn_ptr)(Ps... args))
-        : class_ptr{ class_ptr }
-        , fn_ptr{ fn_ptr } {}
+    MemberPtrPair(T * class_ptr, void (T::*fn_ptr)(Ps... args))
+        : class_ptr{ class_ptr }, fn_ptr{ fn_ptr } {}
 
-    T* class_ptr;
+    T * class_ptr;
     void (T::*fn_ptr)(Ps... args);
 };
 
 #endif
 
-template <class T, typename... Ps> class HardSignal {
+/*
+
+
+*TODO*
+
+
+simplify hard-signalling
+
+template <typename... Ps>
+class HardSignalType { // HardSlot {
    public:
-    ~HardSignal() {
+    virtual ~HardSignalType() = 0;
+    virtual void slot_member(Ps... args) = 0;
+};
+
+
+*/
+
+template <class T, typename... Ps>
+class HardSignal
+{
+  public:
+    ~HardSignal()
+    {
         std::cerr << "HardSignal::~HardSignal - - DESTRUCTOR - -"
                   << "\n";
     }
@@ -50,31 +69,32 @@ template <class T, typename... Ps> class HardSignal {
     }
     */
 
-    inline void operator()(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args)) {
+    inline void operator()(T * p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
+    {
         connect(p_class_ptr, p_fn_ptr);
     }
 
-    inline void connect(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args)) {
+    inline void connect(T * p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
+    {
         std::cerr << "Adding HardSignal\n";
-#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+        #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
         class_ptr = p_class_ptr;
         fn_ptr = p_fn_ptr;
-#else
+        #else
         funcs.push_back(MemberPtrPair<T, Ps...>(p_class_ptr, p_fn_ptr));
-#endif
+        #endif
     }
 
-    inline void emit(Ps... args) {
+    inline void emit(Ps... args)
+    {
 // cerr << "Emit HardSignal via ()" << "\n";
 // cerr << sizeof(funcs) << "\n";
 // cerr << funcs.size() << "\n";
-
-#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+        #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
         // if ( class_ptr ) {
         (class_ptr->*(fn_ptr))(args...);
 //}
-
-#else
+        #else
         for (auto pair : funcs) {
             // try {
             (pair.class_ptr->*(pair.fn_ptr))(args...);
@@ -83,16 +103,16 @@ template <class T, typename... Ps> class HardSignal {
             // listener!\n\n\n";
             //}
         }
-#endif
+        #endif
     }
 
-   private:
-#ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
-    T* class_ptr = nullptr;
+  private:
+    #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
+    T * class_ptr = nullptr;
     void (T::*fn_ptr)(Ps...) = nullptr;
-#else
+    #else
     std::vector<MemberPtrPair<T, Ps...>> funcs;
-#endif
+    #endif
 };
 
 #endif

@@ -7,12 +7,81 @@
 
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedBufferAbstract.hh"
+#include "QuantBuffersIntertwinedHeap.hh"
+#include "QuantBuffersIntertwinedBufferAbstract.hh"
 #include "QuantFeedAbstract.hh"
 #include "QuantPeriodizationAbstract.hh"
 #include "QuantStudyContextBase.hh"
 #include "QuantExecutionContext.hh"
+
+
+/*
+ *
+ *
+ * PSEUDO CODE FROM THubV8....
+
+feed::poll() -> Record
+    rec-count = SQB_IndexFile_mmap_buf[REC_COUNT_OFFSET]
+
+    ref last_rec = records[last]
+
+    if record-pos == rec-count
+        last_rec.time = 0
+        return ref last_rec
+
+    read_tick(last_rec, SQB_payload_mmap_buf)
+    return ref last_rec
+
+
+
+# catch up loop
+# while record-pos < rec-count
+#    read-record()
+
+# LIVE loop - do the regular closest-value looping here too? Maybe so!
+# In that case rec.time = timetype::max() is special case of "awaiting values"
+
+
+if TPL_CONST_USE_SIGNALS {
+    #include <csignal>
+
+    sigset_t sig_mask;
+    sigset_t orig_mask;
+    timespec timeout;      // must be set to the smallest periodicity interval of all feeds. Or just go with 1 second (will NEVER (famous last words) use less then 1s periodizity. Too unsafe for workable strategies given network latency and murphys law.)
+    pid_t pid;
+
+    sigemptyset(&sig_mask);
+    sigaddset(&sig_mask, SIG X X X );
+}
+
+for ever {
+
+    ts = QuantTime::max()  # we must reset each time since we can get out of order timestamps on different feeds b/c of network latencies
+
+    // test all feeds for new data
+    for (auto feed : feeds) {
+        test_ts = feed.check_next() // Do not advance. feeds advance when they"ve been "emitted"
+        if test_ts < ts
+            ts = test_ts
+            closest_feed = feed
+    }
+
+    if ts == max_time   # "no data available yet"
+        if TPL_CONST_USE_SIGNALS
+            sigtimedwait(&wait_sig_mask, ) some-confed-amount-of-time     # let the CPU rest a bit before we check for new data again... use as long time as we can afford strategy latency wise..
+        else
+            sleep for 100ms or something
+    else
+        tick = feed.consume();
+        feed.emit();
+
+}
+
+
+*/
+
+
+
 
 enum retro_mode { BACKTEST = 0, FULL };
 
@@ -72,6 +141,145 @@ void QuantExecutionRetroactive::add(QuantPeriodizationAbstract *
     // periodization->set_date_range( start_date, end_date );
     periodizations.push_back(periodization);
 }
+
+/*
+
+
+* PSEUDO CODE FOR SIGNALLED LIVE FEED FOLLOWING:
+
+
+
+const_expr auto QUANTTIME_MAX = numeric_limits<QuantTime>::max()
+
+
+seq_raw_buf::
+
+// load_next() -> poll for available pre-fetch, then set it active
+// load(path)  -> prefetch(path) -> load_next()
+// prefetch(path)
+// init_page(path) -> init a new page on path, and set it active
+
+
+seq_raw_buf::load_next() ->
+    while prefetch_bufs.size() == 0
+        sleep 47
+
+    munmap(mmap_buf)
+    mmap_buf = prefetch_bufs.pop_front();
+
+
+
+
+quff_buf::next_page() ->
+    seq_raw_buf.set_path(next_page_path);
+    seq_raw_buf.load();
+
+
+    // *TODO* use n prefetch-steps. at first startup of quff_buf fetch up to n
+    // on continous next_page:
+    //  - un-map the current buf.
+    //  - load() by pointing to the next pre-fetched, then
+    //  - pre-fetch the next n'th page
+    // pre-fetch is a feature of seq_raw_buf. But pre-fetching is managed
+    // outside of it. A current buffer is thrown away when taking the next
+    // (whether pre-fetched or loaded - used == disposed - no 'back caching')
+
+    if prefetch_page_count > 0
+        prefetch_ts = current_page_ts + (page_duration * prefetch_page_count)
+
+        if suggested_work_range_end > prefetch_ts
+            tmp_page_path = generate_page_path(prefetch_ts)
+            seq_raw_buf.prefetch(tmp_page_path);
+
+
+inline
+quff_buf::read_record_count() -> size_t
+    return seq_raw_buf[REC_COUNT_VAR_OFFSET]
+
+
+
+
+feed::load_page() ->
+
+
+feed::read_next() -> Record &
+
+    rec & last_rec = record-buf[++record_buf_ix]
+
+    if record-pos < rec-count
+        read_quff_record(last_rec, quff_buf)    // "read_tick"
+        return last_rec
+
+    else
+        if this-is-historic-quff-page // non-current / active quff-page
+            load-next-fucking-page()
+            return read_next()
+
+        else
+            // try re-reading the count-value, if it's been updated with new
+data
+
+            rec-count = quff_buf.read_record_count()
+
+            if record-pos < rec-count
+                return read_next()
+            else
+                --record_buf_ix         // re-use the record at next read since
+this return is more of a "return message"
+                rec.ts = QUANTTIME_MAX
+                return rec
+
+
+
+
+# catch up loop
+# while record-pos < rec-count
+#    read-record
+
+# LIVE loop - do the regular closest-value looping here too? Maybe so!
+# In that case rec.time = timetype::max() is special case of "awaiting values"
+
+
+#include <csignal>
+
+sigset_t sig_mask;
+sigset_t orig_mask;
+timespec timeout;      // must be set to the smallest periodicity interval of
+all feeds. Or just go with 1 second (will NEVER (famous last words) use less
+then 1s periodizity. Too unsafe for workable strategies given network latency
+and murphys law.)
+pid_t pid;
+
+sigemptyset(&sig_mask);
+sigaddset(&sig_mask, SIG X X X );
+
+while (true) {
+
+    ts = QUANTTIME_MAX  # we must reset each time since we can get out of order
+timestamps on different feeds b/c of network latencies
+
+    // test all feeds for new data
+    for (auto feed : feeds) {
+        test_ts = feed.check_next() // Do not advance. feeds advance when
+they"ve been "emitted"
+        if test_ts < ts
+            ts = test_ts
+            nearest_feed = feed
+    }
+
+    if ts == QUANTTIME_MAX   # "no data available yet"
+        sigtimedwait(&wait_sig_mask, some-confed-amount-of-time)     # let the
+CPU rest a bit before we check for new data again... use the longest time
+allowed considering ghost-tick-periodicities
+
+    else
+        // tick = nearest_feed.consume();
+        nearest_feed.emit();
+
+}
+
+
+*/
 
 int QuantExecutionRetroactive::run(void)
 {

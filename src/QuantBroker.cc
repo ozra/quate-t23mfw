@@ -12,14 +12,17 @@
 namespace t23m {
 using namespace t23m;
 
-class BrokerAbstract {
+class BrokerAbstract
+{
     BrokerAbstract();
     //~BrokerAbstract ();
-    virtual auto get_instrument(cA* symbol, QuantTime time) -> Instrument = 0;
+    virtual auto get_instrument(char const * const symbol,
+                                QuantTime time) -> Instrument = 0;
 };
 
 // Singleton -
-class BrokerManager {
+class BrokerManager
+{
     // BrokerManager();
 
     // *TODO*

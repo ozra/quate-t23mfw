@@ -41,7 +41,7 @@ it is simply an intermediate / _sequential_ format)
  - should be small enough to be a usable unit (ie, not having to load way more
     data than _normally_ needed)
 
-* USDZAR har t.ex. ca 18000pip diff på en dag. Så säg 30k. = 16bit needed. OM
+* USDZAR har t.ex. ca 18000pip diff på en dag. stringå säg 30k. = 16bit needed. OM
     man ska behålla full resolution också! (Detta är nu "från single reference")
 
 ## FULLY RELATIVE VALUE (except PAGE initial reference) ##

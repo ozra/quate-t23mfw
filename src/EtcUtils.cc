@@ -62,33 +62,37 @@ uncommon mapping
 // using namespace std::literals::chrono_literals;
 // const auto report-every = 5s;
 
-class ActLikeTrueEvery {
-   public:
-    ActLikeTrueEvery(R seconds)
-        // : repetition(std::chrono::nanoseconds(seconds * 1000000000)) {}
+class ActLikeTrueEvery
+{
+  public:
+    ActLikeTrueEvery(real seconds)
+    // : repetition(std::chrono::nanoseconds(seconds * 1000000000)) {}
         : previous_time(std::chrono::seconds(0)),
-          repetition(std::chrono::nanoseconds(N(seconds*1000000000))) {}
+          repetition(std::chrono::nanoseconds(int(seconds * 1000000000))) {}
 
-    operator bool() {
+    operator bool()
+    {
         if (std::chrono::high_resolution_clock::now() - previous_time >
             repetition) {
             previous_time = std::chrono::high_resolution_clock::now();
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
 
-   private:
+  private:
     std::chrono::high_resolution_clock::time_point previous_time;
     // std::chrono::high_resolution_clock::duration
     // repetition(std::chrono::seconds(0));
     std::chrono::high_resolution_clock::duration repetition;
 };
 
-template <N minv>
-inline NN upper_power_of_two(NN v) {
-    if (v < minv) return minv;
+template <int minv>
+inline int upper_power_of_two(int v)
+{
+    if (v < minv) { return minv; }
     v--;
     v |= v >> 1;
     v |= v >> 2;

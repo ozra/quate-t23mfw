@@ -8,13 +8,23 @@
 
 #include "rfx11_types.hh"
 #include <string>
+#include <cstring>
 
 namespace t23m {
 using namespace t23m;
 
 typedef std::string String;
 
-const char* const symbol_names[] = {
+char const * const symbol_names[] = {
+    "_NIL_",
+
+    // Cryptos, and reserved space for future cryptos
+    "BTCUSD",      "LTCUSD",    "BTCCNY",        "LTCCNY",
+    "FOO1", "FOO2", "FOO3", "FOO4", "FOO5", "FOO6", "FOO7",
+    "FOO8", "FOO9", "FOO10", "FOO11", "FOO12", "FOO13", "FOO14",
+    "FOO15", "FOO16", "FOO17", "FOO18", "FOO19", "FOO20",
+
+    // Common forex pairs
     "AUDUSD",      "EURUSD",    "GBPUSD",        "NZDUSD",       "USDCAD",
     "USDCHF",      "USDJPY",    "AUDCAD",        "AUDCHF",       "AUDJPY",
     "AUDNZD",      "CADCHF",    "CADJPY",        "CHFJPY",       "EURAUD",
@@ -35,7 +45,7 @@ const char* const symbol_names[] = {
     "CHEIDXCHF"
 };
 
-const N TOTAL_SYMBOL_COUNT = sizeof(symbol_names);
+const natural TOTAL_SYMBOL_COUNT = sizeof(symbol_names);
 
 
 typedef String SecuritySymbol; // "ZARJPY", "XAGUSD", etc.
@@ -43,7 +53,32 @@ typedef String CurrencySymbol; // "EUR", "XAG", "SEK", etc.
 
 typedef enum {
     NIL = 0,
-    AUDUSD = 1,
+    BTCUSD = 1,
+    LTCUSD,
+    BTCCNY,
+    LTCCNY,
+    FOO1,
+    FOO2,
+    FOO3,
+    FOO4,
+    FOO5,
+    FOO6,
+    FOO7,
+    FOO8,
+    FOO9,
+    FOO10,
+    FOO11,
+    FOO12,
+    FOO13,
+    FOO14,
+    FOO15,
+    FOO16,
+    FOO17,
+    FOO18,
+    FOO19,
+    FOO20,
+
+    AUDUSD,
     EURUSD,
     GBPUSD,
     NZDUSD,
@@ -105,6 +140,7 @@ typedef enum {
     USDTRY,
     USDZAR,
     ZARJPY,
+
     BRENTCMDUSD,
     WTICMDUSD,
     CUCMDUSD,
@@ -129,22 +165,44 @@ typedef enum {
     ESPIDXEUR,
     ITAIDXEUR,
     CHEIDXCHF
-} SecurityNumberCode,
-    CurrencyNumberCode;
 
-SecurityNumberCode get_symbol_number_code(String symbol);
+} SecurityNumberCode, CurrencyNumberCode;
+
+//SecurityNumberCode get_symbol_number_code(String symbol);
+int search_string_list_for_matching_row(char const * const list[],
+                                        int list_len, char const * const symbol);
+SecurityNumberCode get_symbol_number_code(char const * const symbol);
+char const * get_symbol_name(SecurityNumberCode code);
+
 }
 
 #endif
 
 namespace t23m {
 
-SecurityNumberCode get_symbol_number_code(String symbol) {
-    for (auto i = 0; i < sizeof(symbol_names); ++i) {
-        if (symbol_names[i] == symbol) {
-            return SecurityNumberCode(i);
+int search_string_list_for_matching_row(char const * const list[],
+                                        int list_len, char const * const symbol)
+{
+    for (auto i = 0; i < list_len; ++i) {
+        if (strcmp(list[i], symbol) == 0) {
+            return i;
         }
     }
-    return NIL;
+    return 0;   // *NOTE* - 0 is considered to be a "_NIL_" post, we do not return -1.
 }
+
+SecurityNumberCode get_symbol_number_code(char const * const symbol)
+{
+    return SecurityNumberCode(search_string_list_for_matching_row(symbol_names,
+                              TOTAL_SYMBOL_COUNT, symbol));
+}
+
+char const * get_symbol_name(SecurityNumberCode code)
+{
+    if (int(code) >= TOTAL_SYMBOL_COUNT) {
+        code = NIL;
+    }
+    return symbol_names[code];
+}
+
 }

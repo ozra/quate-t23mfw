@@ -14,38 +14,42 @@
 namespace pxt = boost::posix_time;
 namespace dt = boost::gregorian;
 
+#include "QuantTime.hh"
+
 //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 #ifdef DESIGN_CHOICE__USE_32B_SPACE_FOR_QUANT_CALCULATIONS
-*TODO*;
-typedef N32 QuantTypeSized;
-typedef QuantTimeStamp<MILLIS, 100, N32> QuantDuration;
-typedef QuantTimeStamp<MILLIS, 100, N32> QuantTime;
-typedef R32 QuantReal;
-typedef Z32 QuantInt;
-typedef N32 QuantUInt; // which ever is fastest of unsigned and regular
-typedef string QuantString;
+    * TODO*;
+    typedef uint32_t QuantTypeSized;
+    typedef QuantTimeStamp<MILLIS, uint64_t> QuantEpoch;
+    typedef QuantTimeStamp<QUINTIS, uint32_t> QuantDuration;
+    typedef QuantTimeStamp<QUINTIS, uint32_t> QuantTime;
+    typedef real32 QuantReal;
+    typedef int32_t QuantInt;
+    typedef uint32_t QuantNat;
+    typedef string QuantString;
 
 #else
-typedef N64 QuantTypeSized;
-// typedef QuantTimeStamp<MILLIS, 100, N64> QuantDuration;
-// typedef QuantTimeStamp<MILLIS, 100, N64> QuantTime;
-typedef pxt::time_duration QuantDuration;
-typedef pxt::ptime QuantTime;
-typedef R64 QuantReal;
-typedef Z64 QuantInt;
-typedef N64 QuantUInt; // which ever is fastest of unsigned and regular
-typedef string QuantString;
+    typedef uint64_t QuantTypeSized;
+    // typedef QuantTimeStamp<MILLIS, uint64_t> QuantDuration;
+    // typedef QuantTimeStamp<MILLIS, uint64_t> QuantTime;
+    typedef pxt::ptime QuantEpoch;
+    typedef pxt::time_duration QuantDuration;
+    typedef pxt::ptime QuantTime;
+    typedef real64 QuantReal;
+    typedef int64_t QuantInt;
+    typedef uint64_t QuantNat;
+    typedef string QuantString;
 #endif
 
-typedef R32 QuantFloat;
-typedef R64 QuantDouble;
+typedef real32 QuantFloat;
+typedef real64 QuantDouble;
 
-#define MILLISECONDS 1000000 // In nano seconds
+
+//#define MILLISECONDS 1000000 // In nano seconds
 // ↓ The smallest resolution of timestamps
-#define QUANT_TIMESTAMP_RESOLUTION MILLISECONDS
-
+//#define QUANT_TIMESTAMP_RESOLUTION MILLISECONDS
 // ↓ In timestamp resolution ticks - nanoseconds, micros, _millis_ or seconds.
-#define QUANT_TIMESTAMP_UNCERTAINTY 100
+//#define QUANT_TIMESTAMP_UNCERTAINTY 100
 
 #endif

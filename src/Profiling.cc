@@ -17,11 +17,11 @@ using std::cerr;
 
 // using namespace std;
 
-template <typename ProfileEnum, N HIGHEST_ENUM, N STACK_SIZE = 1024>
+template <typename ProfileEnum, natural HIGHEST_ENUM, natural STACK_SIZE = 1024>
 class Profiling
 {
   public:
-    Profiling(cA * ProfileLabels[]) : ProfileLabels(ProfileLabels)
+    Profiling(const char * ProfileLabels[]) : ProfileLabels(ProfileLabels)
     {
         past = std::chrono::high_resolution_clock::now();
         profile_what[0] = ProfileEnum(0);
@@ -31,7 +31,7 @@ class Profiling
     {
         now = std::chrono::high_resolution_clock::now();
         the_times[profile_what[stack_pos]] +=
-            std::chrono::duration_cast<std::chrono::duration<R>>(now - past)
+            std::chrono::duration_cast<std::chrono::duration<real>>(now - past)
             .count(); // difftime( now, past );
         past = now;
         if (++stack_pos == STACK_SIZE) {
@@ -46,26 +46,30 @@ class Profiling
         profile_what[stack_pos] = what;
     }
 
+    #ifdef NDEBUG
+    inline void end(ProfileEnum)
+    #else
     inline void end(ProfileEnum what)
+    #endif
     {
         assert(what == profile_what[stack_pos]);
         now = std::chrono::high_resolution_clock::now();
         the_times[profile_what[stack_pos]] +=
-            std::chrono::duration_cast<std::chrono::duration<R>>(now - past)
+            std::chrono::duration_cast<std::chrono::duration<real>>(now - past)
             .count(); // difftime( now, past );
         past = now;
         --stack_pos;
     }
 
     // ↓ Convenience
-    inline void start(N what)
+    inline void start(natural what)
     {
         //assert(what < numbers<ProfileEnum>.max_value);
         assert(what < HIGHEST_ENUM);
         start(ProfileEnum(what));
     }
 
-    inline void end(N what)
+    inline void end(natural what)
     {
         //assert(what < numbers<ProfileEnum>.max_value);
         assert(what < HIGHEST_ENUM);
@@ -94,7 +98,7 @@ class Profiling
                  "run, aight! : " << STACK_SIZE << "\n\n\n";
             return;
         }
-        R all_time = 0.0;
+        real all_time = 0.0;
         for (auto i = 0; i < ProfileEnum::LAST_ITEM; ++i) {
             if (the_times[i])
                 cerr << ProfileLabels[i] << ": "
@@ -107,15 +111,15 @@ class Profiling
     }
 
   private:
-    cA ** ProfileLabels;
+    const char ** ProfileLabels;
     ProfileEnum profile_what[STACK_SIZE]; // Will not grow even this big..
-    N stack_pos = 0;
-    L overflowed_ = false;
+    natural stack_pos = 0;
+    bool overflowed_ = false;
 
     std::chrono::high_resolution_clock::time_point past;
     std::chrono::high_resolution_clock::time_point now;
 
-    R the_times[ProfileEnum::LAST_ITEM];
+    real the_times[ProfileEnum::LAST_ITEM];
 };
 
 
@@ -130,17 +134,17 @@ unit_tester.add([]()
 
 #endif
 
-extern R profile_local();
+extern real profile_local();
 
 #endif
 
 // 2014-12-03/Oscar Campbell - for simple timing of one-off stuff
-R profile_local()
+real profile_local()
 {
     static std::chrono::high_resolution_clock::time_point previous =
         std::chrono::high_resolution_clock::now();
     auto tmp_past = previous;
     previous = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::duration<R>>
+    return std::chrono::duration_cast<std::chrono::duration<real>>
            (previous - tmp_past).count();
 }

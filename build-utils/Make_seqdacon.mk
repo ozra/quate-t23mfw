@@ -39,14 +39,14 @@ SEQDACON_CC_FILES=	\
 			QuantBuffersBase.cc \
 			QuantBuffersReverseIndexedCircular.cc \
 			QuantProfiling.cc \
-			QuantSequentialDataUtils.cc \
-			QuantSequentialDataPrefetcher.cc \
-			SQDI_BaseAbstract.cc \
-			SQDI_Ticks_Abstract.cc \
-			SQDI_Sys_T23M_Abstract.cc \
-			SQDI_Sys_DukascopyFormat_FsInterface.cc \
-			SQDI_Ticks_Dukascopy.cc \
-			SQDI_Ticks_T23M.cc \
+			QSDF_Utils.cc \
+			QSDF_Prefetcher.cc \
+			QSDF_BaseAbstract.cc \
+			QSDF_Ticks_Abstract.cc \
+			QSDF_Sys_T23M_Abstract.cc \
+			QSDF_Sys_DukascopyFormat_FsInterface.cc \
+			QSDF_Ticks_Dukascopy.cc \
+			QSDF_Ticks_T23M.cc \
 			seqdacon_main.cc
 
 

@@ -4,7 +4,7 @@
 #INSTALL_DATA = $(INSTALL) -m 644
 #include Makefile.conf
 
-#DIRS = apps/verifier apps/seqdacon apps/strategy_example_1
+#DIRS = apps/verifier apps/seqdacon apps/strategy_example_1 apps/price-hunter-hub
 DIRS = apps/strategy_example_1
 
 # the sets of directories to do various things in

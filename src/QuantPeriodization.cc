@@ -9,8 +9,8 @@
 #include "QuantPeriodizationAbstract.hh"
 #include "QuantBase.hh"
 #include "QuantBuffersBase.hh"
-#include "QuantBuffersSynchronizedHeap.hh"
-#include "QuantBuffersSynchronizedBufferAbstract.hh"
+#include "QuantBuffersIntertwinedHeap.hh"
+#include "QuantBuffersIntertwinedBufferAbstract.hh"
 #include "QuantFeed.hh"
 
 #include "HardSignal.hh"
@@ -59,8 +59,8 @@ class QuantPeriodization : public QuantPeriodizationAbstract
     */
 
     QuantPeriodization(
-        R period,
-        N lookback = PERIODIZATION_DEFAULT_SIZE,
+        real period,
+        natural lookback = PERIODIZATION_DEFAULT_SIZE,
         QuantMultiKeeperJar * the_jar = global_actives.active_jar
     ) :
         QuantPeriodizationAbstract(

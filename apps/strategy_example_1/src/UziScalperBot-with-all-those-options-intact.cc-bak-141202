@@ -16,18 +16,18 @@
 #undef DEBUG_BUF_ONEOFF
 #undef TEST_ONLY_ONE_BASE_PERIODIZATION
 
-constexpr Z SIMULATED_TIME_UNCERTAINTY = 100;
+constexpr int SIMULATED_TIME_UNCERTAINTY = 100;
 
 template <class T>
-inline bool has(N val, T & obj)
+inline bool has(int val, T & obj)
 {
-    return N(val) <= obj.count();
+    return int(val) <= obj.count();
 }
 
 template <class T>
-inline bool not_yet(N val, T & obj)
+inline bool not_yet(int val, T & obj)
 {
-    return N(val) > obj.count();
+    return int(val) > obj.count();
 }
 
 typedef QuantReal QR;
@@ -89,15 +89,15 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
     */
 
     // QuantFeed           *main_joint_feed;
-    N handled_ticks_count = 0;
-    N handled_ticks_count2 = 0;
+    natural handled_ticks_count = 0;
+    natural handled_ticks_count2 = 0;
     QR avg_roc = 0;
     QR max_roc = 0;
-    Z one_byter_roc_delta = 0;
-    Z two_byter_roc_delta = 0;
-    Z three_byter_roc_delta = 0;
-    Z four_byter_roc_delta = 0;
-    Z b12_byter_roc_delta = 0;
+    int one_byter_roc_delta = 0;
+    int two_byter_roc_delta = 0;
+    int three_byter_roc_delta = 0;
+    int four_byter_roc_delta = 0;
+    int b12_byter_roc_delta = 0;
     QR floatingEURUSD = 0;
 
     #ifdef IS_DEBUG
@@ -236,7 +236,7 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
         #endif
     }
 
-    void varint_bytes_counter(R v1, R v2)
+    void varint_bytes_counter(real v1, real v2)
     {
         QR ask_delta = v1 - v2;
         QR ask_delta_abs = abs(ask_delta);
@@ -358,8 +358,8 @@ class ZarScalperBot final : public QuantStudyContext<PLOTTING_USED>
 
         // (feed.ticks[0].time - qts::get_prior_aligned_ts( feed.ticks[0].time,
         // pxt::hours(24) )).to_full_ms()
-        R foo_delta =
-            R((feed.ticks[0].time - feed.ticks[1].time).total_milliseconds()) /
+        real foo_delta =
+            real((feed.ticks[0].time - feed.ticks[1].time).total_milliseconds()) /
             SIMULATED_TIME_UNCERTAINTY;
         // cerr << "The time delta is: " << foo_delta << "\n";
         varint_bytes_counter(foo_delta, 0);
