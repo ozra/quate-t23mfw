@@ -39,7 +39,6 @@ PlotCollection::PlotCollection()
     :
     buf_epoch { makeDate(1970, 1, 1) }
 {
-
 }
 
 #ifdef INTERFACE
@@ -139,7 +138,6 @@ QuantStudyContext<PLOTTING_USED>::~QuantStudyContext()
 template <bool PLOTTING_USED>
 bool QuantStudyContext<PLOTTING_USED>::verify_buffers()
 {
-
     // If the whole study is considered primed - we've passed that stage
     // and can safely skip these checks.
     if (is_primed) {
@@ -180,7 +178,6 @@ template <> inline void QuantStudyContext<false>::close_plot_lap(QuantTime)
 template <> inline void QuantStudyContext<true>::close_plot_lap(QuantTime ts)
 {
     profiler.start(PLOTTING);
-
     if (is_plot_headerized == true) {
         //pxt::time_duration delta_ts ( ts - plot_data->buf_epoch );
         pxt::time_duration delta_ts = ts - plot_data->buf_epoch;
@@ -188,19 +185,16 @@ template <> inline void QuantStudyContext<true>::close_plot_lap(QuantTime ts)
         unsigned long long delta_ts_in_s = delta_ts.total_milliseconds() /
                                            plot_data->time_delta_ms_rel_resolution;
         //cerr << "pxt::time_duration delta_ts_in_s " << delta_ts_in_s << "\n";
-
         plot_data->timestamps << delta_ts_in_s << ",";
-
         assert(plot_ix == plot_count);
         ++value_count_ix;
-
         plot_ix = 0;
         profiler.end(PLOTTING);
         return;
-
         //} else {
         //    plot_buf << "], [";    // Close the header, pad with empty arr for last comma
-    } else {
+    }
+    else {
         cerr << "close_plot_lap - finalizing headers" << "\n";
         assert(plot_count <= MAX_PLOTS);
         is_plot_headerized = true;
@@ -208,7 +202,6 @@ template <> inline void QuantStudyContext<true>::close_plot_lap(QuantTime ts)
         profiler.end(PLOTTING);
         return;
     }
-
 }
 
 //#pragma GCC diagnostic push
@@ -250,9 +243,7 @@ template <> inline void QuantStudyContext<true>::plot_ohlc(
 )
 {
     profiler.start(PLOTTING);
-
     if (is_plot_headerized) {       // *TODO* switch out a function ptr as soon as init is done..
-
         if (dynamic_color) {
             Str new_colors = up_body_color + down_body_color + up_border_color +
                              down_border_color;
@@ -263,17 +254,14 @@ template <> inline void QuantStudyContext<true>::plot_ohlc(
                                              << up_border_color << "\",\"" << down_border_color << "\"],";
             }
         }
-
         plot_data->series[plot_ix] << "[" << o << "," << h << "," << l << "," << c <<
                                    "],  ";
         plot_separator();
         profiler.end(PLOTTING);
         return;
-
-
-    } else {
+    }
+    else {
         cerr << "Builds plot header" << "\n";
-
         plot_data->headers[plot_ix]
                 << enum_plot_type::OHLC << "," << "\"" << buffer_name << "\",\""
                 << up_body_color << "\",\"" << down_body_color << "\",\""
@@ -282,7 +270,6 @@ template <> inline void QuantStudyContext<true>::plot_ohlc(
         ++plot_count;
         ++plot_ix;
         profiler.end(PLOTTING);
-
     }
 }
 
@@ -312,7 +299,6 @@ template <> inline void QuantStudyContext<true>::plot(
     // establish plot count first.
     if (is_plot_headerized) {       // *TODO* switch out a function ptr as soon as init is done..
         //cerr << "Plot is inited" << "\n";
-
         if (dynamic_color) {
             Str new_colors = color1 + color2 + fill_color;
             if (plot_data->last_plot_colors[plot_ix] != new_colors) {
@@ -321,13 +307,12 @@ template <> inline void QuantStudyContext<true>::plot(
                 plot_data->last_plot_colors[plot_ix] = new_colors;
             }
         }
-
         plot_data->series[plot_ix] << "[" << value1 << "," << value2 << "],  ";
         plot_separator();
         profiler.end(PLOTTING);
         return;
-
-    } else {
+    }
+    else {
         cerr << "Builds plot header" << "\n";
         plot_data->headers[plot_ix] << type << "," << "\"" << buffer_name << "\",\"" <<
                                     color1 << "\",\"" << color2 << "\",\"" << fill_color << "\"," << thickness <<
@@ -365,13 +350,12 @@ template <> inline void QuantStudyContext<true>::plot(
                                          "\"],";
             plot_data->last_plot_colors[plot_ix] = color;
         }
-
         plot_data->series[plot_ix] << value << ", ";
         plot_separator();
         profiler.end(PLOTTING);
         return;
-
-    } else {
+    }
+    else {
         cerr << "Builds plot header" << "\n";
         plot_data->headers[plot_ix] << type << "," << "\"" << buffer_name << "\",\"" <<
                                     color << "\"," << thickness << "," << line_style;
@@ -393,9 +377,7 @@ template <> void QuantStudyContext<false>::init_plotting()
 template <> void QuantStudyContext<true>::init_plotting()
 {
     cerr << "init_plotting()" << "\n";
-
     profiling_ts = clock();
-
     //plots_enabled = isBuffersOutputEnabled();
     //plot_buf = &std::cout;
     plot_data = new PlotCollection();
@@ -409,47 +391,35 @@ template <> void QuantStudyContext<false>::finalize_plot()
 
 template <> void QuantStudyContext<true>::finalize_plot()
 {
-
     profiler.start(PLOTTING);
-
     constexpr double BUFFER_FORMAT_VERSION = 0.2;
-
     plot_stream
             << "{"   << "\n"
             << "\"version\": " << BUFFER_FORMAT_VERSION << ", "   << "\n";
-
     plot_stream
             << "\"run_stats\": {"    << "\n"
             << "  \"run_time\": " << ((clock() - profiling_ts) / (CLOCKS_PER_SEC / 1000))
             << "\n";
-
-
     plot_stream
             << "}, "   << "\n"
             << "\"summary\": {"    << "\n";
-
     // FOR EACH SUMMARY POINTS {
     plot_stream << "\"foo\": 47 " << "";
     // }
-
     plot_stream
             << "}, "   << "\n"
             << "\"markers\": [ ";
-
     // FOR EACH MARKERS {
     plot_stream << "[ 123123, \"tag1\", 12.671 ] ";
     // }
-
     plot_stream
             << "], "   << "\n"
             << "\"annotations\": [ ";
-
     // FOR EACH ANNOTATIONS {
     // *TODO* enum_annotation_type : LINE, ARROW, ELLIPSE, RECT, etc. etc. 141010
     plot_stream << "[ " << enum_plot_type::CIRCLE <<
                 ", 123123, 11.14, 900, 0.04, \"grp2\" ] ";
     // }
-
     plot_stream
             << "], "   << "\n"
             << "\"timeline\": {" << "\n"
@@ -457,11 +427,9 @@ template <> void QuantStudyContext<true>::finalize_plot()
             << "  \"resolution\": " << plot_data->time_delta_ms_rel_resolution << "," <<
             "\n"
             << "  \"timestamps\": [ " << plot_data->timestamps.str() << "null ] \n";
-
     plot_stream
             << "}, "   << "\n"
             << "\"series\": [ "   << "\n";
-
     for (int i = 0; i < plot_count; ++i) {
         plot_stream
                 << "{"
@@ -470,12 +438,9 @@ template <> void QuantStudyContext<true>::finalize_plot()
                 << "\"dynamics\": [ " << (plot_data->dynamics[i]).str() << "null ]" << "\n"
                 << "}, "   << "\n";
     }
-
     plot_stream
             << "\n" << "null"   << "\n"
             << "]"   << "\n"
             << "}";
-
     profiler.end(PLOTTING);
-
 }

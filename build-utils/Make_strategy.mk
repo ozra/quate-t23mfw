@@ -1,5 +1,17 @@
 include $(T23MFW_ROOT)/build-utils/Make_T23MFW.mk
 
+
+#  *TODO*
+# clang++ \
+#  -ferror-limit=1 -fno-crash-diagnostics -W -Wall -std=c++11 -Werror=return-type -g -O0 -pedantic -march=native -DIS_DEBUG -DIS_DEEPBUG \
+#  -I objs/DbgDev/include/ \
+#  -x c++-header src/StrategyClassChain.hh -o objs/DbgDev/include/StrategyClassChain.hh.pch
+
+#  OR
+
+# clang  -std=c++11 -Iobjs/DbgDev/include/ -P -E src/StrategyClassChain.hh > objs/DbgDev/include/StrategyClassChain.hh.coll
+
+
 # T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_CLANG)
 # T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_CLANG)
 T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_GCC)
@@ -8,7 +20,14 @@ T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_GCC)
 
 VPATH=src/:$(T23SRC):$(T23SRC)/QTA/src/
 
-ASTYLING=astyle --style=otbs --indent=spaces=4 --delete-empty-lines --break-closing-brackets --attach-namespaces --indent-modifiers --indent-preproc-block --indent-preproc-define --indent-preproc-cond --min-conditional-indent=0 --max-instatement-indent=40 --pad-oper --pad-header --unpad-paren --align-pointer=middle --align-reference=middle --add-one-line-brackets --convert-tabs --close-templates --max-code-length=79 --lineend=linux
+# --style=otbs --max-code-length=79 --indent=spaces=4 --delete-empty-lines --break-closing-brackets
+ASTYLING=astyle \
+ --style=otbs --max-code-length=111 --indent=spaces=4 --delete-empty-lines --break-closing-brackets \
+ --attach-namespaces --indent-modifiers --indent-preproc-block --indent-preproc-define \
+ --indent-preproc-cond --min-conditional-indent=0 --max-instatement-indent=40 \
+ --pad-oper --pad-header --unpad-paren --align-pointer=type --align-reference=type \
+ --add-one-line-brackets --convert-tabs --close-templates \
+ --lineend=linux
 # --break-blocks=all
 
 STRATEGY_LINK_FLAGS=-static
@@ -73,6 +92,7 @@ clean:
 syntax: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
 objs/DbgDev/include/%.hh: %.cc
 	$(ASTYLING) $< \
+	&& (chmod 666 $@ || true)\
 	&& noah-cpp --fixed-path -o 'objs/DbgDev/include/' $<
 objs/DbgDev/%.o: %.cc
 	$(T23MFW_COMPILER_SYNTAX) $(STRATEGY_COMPILE_FLAGS) -Iobjs/DbgDev/include/ -c -o $@ \
@@ -88,6 +108,7 @@ bin/DbgDev/strategy_standalone: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
 
 objs/DbgDev/include/%.hh: %.cc
 	$(ASTYLING) $< \
+	&& (chmod 666 $@ || true)\
 	&& noah-cpp --fixed-path -o 'objs/DbgDev/include/' $<
 
 objs/DbgDev/%.o: %.cc

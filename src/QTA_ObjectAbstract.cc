@@ -11,8 +11,10 @@
 #include <exception>
 #include <cmath>
 
-class bad_calc : public std::exception { //  - 2014-08-12/ORC(19:51)
-    virtual const char* what() const throw() {
+class bad_calc : public std::exception   //  - 2014-08-12/ORC(19:51)
+{
+    virtual const char * what() const throw()
+    {
         return "An unrecoverable quant calculation error took place.";
     }
 };
@@ -42,8 +44,9 @@ bad_calc _bad_calc_; // Exception instance
 
 namespace QTA {
 
-class ObjectAbstract {
-   public:
+class ObjectAbstract
+{
+  public:
     ObjectAbstract() {};
     virtual ~ObjectAbstract() {};
 

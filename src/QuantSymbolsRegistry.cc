@@ -20,6 +20,7 @@ char const * const symbol_names[] = {
 
     // Cryptos, and reserved space for future cryptos
     "BTCUSD",      "LTCUSD",    "BTCCNY",        "LTCCNY",
+
     "FOO1", "FOO2", "FOO3", "FOO4", "FOO5", "FOO6", "FOO7",
     "FOO8", "FOO9", "FOO10", "FOO11", "FOO12", "FOO13", "FOO14",
     "FOO15", "FOO16", "FOO17", "FOO18", "FOO19", "FOO20",
@@ -45,7 +46,7 @@ char const * const symbol_names[] = {
     "CHEIDXCHF"
 };
 
-const natural TOTAL_SYMBOL_COUNT = sizeof(symbol_names);
+constexpr int TOTAL_SYMBOL_COUNT = (int) sizeof(symbol_names);
 
 
 typedef String SecuritySymbol; // "ZARJPY", "XAGUSD", etc.

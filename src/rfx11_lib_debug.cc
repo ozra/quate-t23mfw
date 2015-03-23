@@ -14,26 +14,26 @@ using std::cerr;
 using std::cout;
 
 #ifdef IS_DEBUG
-#define _D(A) cerr << A
-#define _Dn(A) cerr << A << "\n";
+    #define _D(A) cerr << A
+    #define _Dn(A) cerr << A << "\n";
 
-#define _DBG(A) A
+    #define _DBG(A) A
 
-#ifdef IS_DEEPBUG
-#define _DP(A) cerr << A
-#define _DPn(A) cerr << A << "\n";
+    #ifdef IS_DEEPBUG
+        #define _DP(A) cerr << A
+        #define _DPn(A) cerr << A << "\n";
+    #else
+        #define _DP(A) ;  // if(false){cerr<<A;}
+        #define _DPn(A) ; // if(false){cerr<<A;}
+    #endif
+
 #else
-#define _DP(A) ;  // if(false){cerr<<A;}
-#define _DPn(A) ; // if(false){cerr<<A;}
-#endif
+    #define _D(A) ;   // if(false){cerr<<A;}
+    #define _Dn(A) ;  // if(false){cerr<<A;}
+    #define _DP(A) ;  // if(false){cerr<<A;}
+    #define _DPn(A) ; // if(false){cerr<<A;}
 
-#else
-#define _D(A) ;   // if(false){cerr<<A;}
-#define _Dn(A) ;  // if(false){cerr<<A;}
-#define _DP(A) ;  // if(false){cerr<<A;}
-#define _DPn(A) ; // if(false){cerr<<A;}
-
-#define _DBG(A) ; // if(false){A;}
+    #define _DBG(A) ; // if(false){A;}
 
 #endif
 

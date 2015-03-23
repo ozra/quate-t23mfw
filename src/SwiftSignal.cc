@@ -16,13 +16,14 @@ typedef std::function<void()> VoidFn;
 
 
 //template <typename... A>
-class SwiftSignal {
+class SwiftSignal
+{
   public:
-    ~SwiftSignal ();
+    ~SwiftSignal();
 
-    void operator() (VoidFn);
-    void connect (VoidFn);
-    void emit ();
+    void operator()(VoidFn);
+    void connect(VoidFn);
+    void emit();
 
   private:
     std::vector<VoidFn> funcs;
@@ -36,31 +37,32 @@ class SwiftSignal {
 //#include <stdio.h>
 #include "QuantBase.hh"
 
-SwiftSignal::~SwiftSignal ( ) {
+SwiftSignal::~SwiftSignal()
+{
     cerr << "SwiftSignal::~SwiftSignal - - DESTRUCTOR - -" << "\n";
 }
 
-void SwiftSignal::operator() ( VoidFn fn ) {
+void SwiftSignal::operator()(VoidFn fn)
+{
     cerr << "Adding SwiftSignal via ()\n";
     funcs.push_back(fn);
 }
 
-void SwiftSignal::connect ( VoidFn fn ) {
+void SwiftSignal::connect(VoidFn fn)
+{
     cerr << "Adding SwiftSignal via connect()\n";
     funcs.push_back(fn);
 }
 
-void SwiftSignal::emit () {
+void SwiftSignal::emit()
+{
     //cerr << "Emit SwiftSignal via ()" << "\n";
     //cerr << sizeof(funcs) << "\n";
     //cerr << funcs.size() << "\n";
-
     for (auto fn : funcs) {
         //cerr << "SwiftSignal iteration!\n";
-
         //try {
-            fn();
-
+        fn();
         //} catch (...) {
         //    cerr << "\n\nSome shit went down when calling listener!\n\n\n";
         //    // SHIT HAPPENED - TODO(ORC)

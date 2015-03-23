@@ -36,3 +36,6 @@ $(CLEANDIRS):
 #.PHONY: subdirs $(TESTDIRS)
 .PHONY: subdirs $(CLEANDIRS)
 .PHONY: all install clean test
+
+watch:
+	while true; do (make; inotifywait -qre close_write .; ) done;

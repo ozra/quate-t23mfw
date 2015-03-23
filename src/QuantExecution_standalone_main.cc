@@ -23,13 +23,13 @@ namespace po = boost::program_options;
 
 void doTimeTests()
 {
-    qts::EpochS epoch_x(qts::EpochS::hours(5));
-    qts::TsS ts_s(qts::TsS::minutes(447));
+    qts::EpochS epoch_x(qts::EpochS::from_hours(5));
+    qts::TsS ts_s(qts::TsS::from_minutes(447));
     cerr << "EPOCH_MN etc.\n\n" << epoch_x << " (" << epoch_x.to_minutes()
          << "), " << ts_s << " ( " << ts_s.to_minutes() << "), ";
     epoch_x += ts_s;
     cerr << epoch_x << " (" << epoch_x.to_minutes() << "), ";
-    epoch_x += epoch_x.minutes(25);
+    epoch_x += epoch_x.from_minutes(25);
     cerr << epoch_x << " (" << epoch_x.to_minutes() << "), ";
     cerr << "ep + ts: " << (epoch_x + ts_s).to_minutes() << ", ";
     // cerr << "ep + ts + ts: " << ((epoch_x + ts_s + ts_s).to_minutes());

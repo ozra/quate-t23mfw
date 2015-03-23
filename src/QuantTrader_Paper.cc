@@ -9,7 +9,7 @@
 *
 **/
 
-#include <QuantFeed.hh>
+#include "QuantFeed.hh"
 
 
 template <bool FOO = true>  // Just to keep it compiling though all inlined.. *TEMP*

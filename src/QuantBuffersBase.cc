@@ -9,23 +9,31 @@
 #include <exception>
 
 // Exception:
-class bad_quantbuffer_use: public std::exception {  //  - 2014-08-12/ORC(19:51)
+class bad_quantbuffer_use: public std::exception    //  - 2014-08-12/ORC(19:51)
+{
   public:
-    virtual const char* what() const throw() {
+    virtual const char * what() const throw()
+    {
         return "Some unspecified error when using a quant::BufferHeap! Check stderr/cerr log / output.";
     }
 };
 
-class bad_quantbuffer_indexing: public bad_quantbuffer_use {  //  - 2014-08-12/ORC(19:51)
+class bad_quantbuffer_indexing: public
+    bad_quantbuffer_use    //  - 2014-08-12/ORC(19:51)
+{
   public:
-    virtual const char* what() const throw() {
+    virtual const char * what() const throw()
+    {
         return "You've used an index that overflows - or something similar - a quant::BufferHeap!";
     }
 };
 
-class bad_quantbuffer_allocation: public bad_quantbuffer_use {  //  - 2014-08-12/ORC(19:51)
+class bad_quantbuffer_allocation: public
+    bad_quantbuffer_use    //  - 2014-08-12/ORC(19:51)
+{
   public:
-    virtual const char* what() const throw() {
+    virtual const char * what() const throw()
+    {
         return "You can't add buffers after allocating a quant::BufferHeap!";
     }
 };

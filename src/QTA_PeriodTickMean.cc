@@ -16,15 +16,17 @@
 namespace QTA {
 
 // template <bool WEIGHTED>
-class PeriodTickMeanVariations : public QTA::ObjectAbstract {
-   public:
+class PeriodTickMeanVariations : public QTA::ObjectAbstract
+{
+  public:
     PeriodTickMeanVariations(size_t max_lookback = 0
                              //, QuantPeriodizationAbstract &per =
                              //*global_actives.active_periodization
-                             )
+                            )
         : lookback{ max_lookback }
         , // max_lookback > 0 ? max_lookback : per.default_buf_size ),
-        result(lookback) {
+          result(lookback)
+    {
         // *TODO* LOOK OVER THE ARCHITECTURE - WE PROBABLY *SHOULD* USE per.add
         // _BUT_ - we want QTA's to be nearly as simple to write as QStudies.
         // QTAs, like QStudies, should be seen as a Mathematician/Novice C++
@@ -32,7 +34,6 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
         //
         //
         // per.add( result, lookback );
-
         /*
         feed.onRegulatedTick( [this] {
             if ( this->feed.ticks[0].isGhostTick() ) {  // Ghost ticks have no
@@ -44,7 +45,6 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
             mean += (this->feed.ticks[0]).last_price;
         } );
         */
-
         /*
         per.onBarClose( [this] {
             this->calculateMedian();
@@ -65,28 +65,31 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
         }
     }
     */
-    inline void updateMean(QuantReal value, QuantReal weight) {
+    inline void updateMean(QuantReal value, QuantReal weight)
+    {
         mean_ack += value * weight;
         value_weight += weight;
     }
-    inline void updateMean(QuantReal value) {
+    inline void updateMean(QuantReal value)
+    {
         mean_ack += value;
         ++value_weight;
     }
 
-    inline void calculateMean(QuantReal close_value) {
+    inline void calculateMean(QuantReal close_value)
+    {
         if (value_weight == 0) { // Ghost candle?
             // cerr << "calculateMean: " << mean_ack << " / " << value_weight <<
             // " USES either: " << result[1] << " or " << close_value << "\n";
-
             // *TODO*
             if (false && result.size >= 2) {
                 result |= result[1];
-            } else {
+            }
+            else {
                 result |= close_value;
             }
-
-        } else {
+        }
+        else {
             // cerr << "calculateMean: " << mean_ack << " / " << value_weight <<
             // " = " << (mean_ack / value_weight) << "\n";
             result |= (mean_ack / value_weight);
@@ -99,15 +102,17 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract {
 
     inline void operator|=(QuantReal value) { calculateMean(value); }
 
-    inline QuantReal operator[](int reverse_index) const {
+    inline QuantReal operator[](int reverse_index) const
+    {
         return result[reverse_index];
     }
 
-    inline operator QuantReal() const {
+    inline operator QuantReal() const
+    {
         return result;
     };
 
-   private:
+  private:
     size_t lookback;
 
     QuantReal mean_ack = 0.0;

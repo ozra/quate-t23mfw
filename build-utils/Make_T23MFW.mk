@@ -27,7 +27,6 @@ T23MFW_CC_FILES := \
 	QSDF_Ticks_T23M.cc \
 	QSDF_SyntheticTriangleWaveDebug_Ticks.cc \
 	QuantBuffersIntertwinedHeap.cc \
-	QuantObjectManagers.cc \
 	QuantElementModel_Tick.cc \
 	SwiftSignal.cc \
 	EtcUtils.cc \

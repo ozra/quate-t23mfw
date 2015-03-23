@@ -12,20 +12,21 @@ class QuantStudyContextAbstract;
 class QuantFeedAbstract;
 class QuantPeriodizationAbstract;
 
-class QuantExecutionContext {
+class QuantExecutionContext
+{
   public:
-    QuantExecutionContext (
+    QuantExecutionContext(
         QuantTime start_date,
         QuantTime end_date,
         bool buffers_output_enabled,
         bool is_optimization
     );
-    virtual ~QuantExecutionContext () = 0;
+    virtual ~QuantExecutionContext() = 0;
 
-    virtual void add ( QuantStudyContextAbstract *study ) = 0;
+    virtual void add(QuantStudyContextAbstract * study) = 0;
 
-    bool isBuffersOutputEnabled ();
-    bool isOptimization ();
+    bool isBuffersOutputEnabled();
+    bool isOptimization();
 
     QuantTime start_date;
     QuantTime end_date;
@@ -39,29 +40,29 @@ class QuantExecutionContext {
 
 #endif
 
-QuantExecutionContext::QuantExecutionContext (
+QuantExecutionContext::QuantExecutionContext(
     QuantTime start_date,
     QuantTime end_date,
     bool buffers_output_enabled,
     bool is_optimization
 ) :
-    start_date ( start_date ),
-    end_date ( end_date ),
-    buffers_output_enabled ( buffers_output_enabled ),
-    is_optimization ( is_optimization )
+    start_date(start_date),
+    end_date(end_date),
+    buffers_output_enabled(buffers_output_enabled),
+    is_optimization(is_optimization)
 {
     global_actives.run_context = this;
 }
 
-QuantExecutionContext::~QuantExecutionContext ()
+QuantExecutionContext::~QuantExecutionContext()
 {}
 
-bool QuantExecutionContext::isBuffersOutputEnabled ()
+bool QuantExecutionContext::isBuffersOutputEnabled()
 {
     return buffers_output_enabled;
 }
 
-bool QuantExecutionContext::isOptimization ()
+bool QuantExecutionContext::isOptimization()
 {
     return is_optimization;
 }
