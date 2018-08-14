@@ -147,7 +147,7 @@ int seqdacon_run(string broker_id, string symbol, pxt::ptime start_date,
 //       +#+       +#+ +#+     +#+     +#+     +#+  +#+#+#
 //       #+#       #+# #+#     #+#     #+#     #+#   #+#+#
 //       ###       ### ###     ### ########### ###    ####
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
     profiler.start(STARTUP);
     std::cerr.sync_with_stdio(false);
@@ -207,15 +207,15 @@ int main(int argc, char ** argv)
     pxt::ptime end_date(makeTime(end_date_str));
     cerr << "\n";
     cerr << "ptime info - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&start_date) << "\n";
+         << *reinterpret_cast<uint64_t*>(&start_date) << "\n";
     pxt::ptime epoch_1900_test(makeTime("1900-01-01 00:00:00.000"));
     pxt::ptime epoch_1970_test(makeTime("1970-01-01 00:00:00.000"));
     cerr << "epoch 1900 - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&epoch_1900_test) << "\n";
+         << *reinterpret_cast<uint64_t*>(&epoch_1900_test) << "\n";
     cerr << "epoch '70 - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&epoch_1970_test) << "\n";
+         << *reinterpret_cast<uint64_t*>(&epoch_1970_test) << "\n";
     cerr << "ptime info - evil cast / (1000*60*60*24*365) : "
-         << (*reinterpret_cast<uint64_t *>(&start_date) /
+         << (*reinterpret_cast<uint64_t*>(&start_date) /
              (1000LL * 60 * 60 * 24 * 365LL)) << "\n";
     cerr << "\n";
     int ret = pricefetcher_xyz_something__run(broker_id, symbol, start_date,

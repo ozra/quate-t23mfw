@@ -18,14 +18,23 @@ namespace QTA {
 // template <bool WEIGHTED>
 class PeriodTickMeanVariations : public QTA::ObjectAbstract
 {
+  private:
+    size_t lookback;
+
+    QuantReal mean_ack = 0.0;
+    QuantReal value_weight = 0.0;
+    // int         value_weight = 0;
+
+    QuantBuffer<QuantReal> result;
+
   public:
     PeriodTickMeanVariations(size_t max_lookback = 0
                              //, QuantPeriodizationAbstract &per =
                              //*global_actives.active_periodization
-                            )
-        : lookback{ max_lookback }
+                            ) :
+        lookback{ max_lookback }
         , // max_lookback > 0 ? max_lookback : per.default_buf_size ),
-          result(lookback)
+        result(lookback)
     {
         // *TODO* LOOK OVER THE ARCHITECTURE - WE PROBABLY *SHOULD* USE per.add
         // _BUT_ - we want QTA's to be nearly as simple to write as QStudies.
@@ -112,14 +121,6 @@ class PeriodTickMeanVariations : public QTA::ObjectAbstract
         return result;
     };
 
-  private:
-    size_t lookback;
-
-    QuantReal mean_ack = 0.0;
-    QuantReal value_weight = 0.0;
-    // int         value_weight = 0;
-
-    QuantBuffer<QuantReal> result;
 };
 
 // typedef PeriodTickMeanVariations<true> PeriodTickMeanWeighted;

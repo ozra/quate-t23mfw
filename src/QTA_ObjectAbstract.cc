@@ -13,7 +13,7 @@
 
 class bad_calc : public std::exception   //  - 2014-08-12/ORC(19:51)
 {
-    virtual const char * what() const throw()
+    virtual const char* what() const throw()
     {
         return "An unrecoverable quant calculation error took place.";
     }

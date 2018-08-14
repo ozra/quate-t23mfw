@@ -74,10 +74,10 @@ class QuantPeriodizationAbstract
     */
     QuantPeriodizationAbstract(
         real period, ff_size_t lookback,
-        QuantMultiKeeperJar * the_jar = global_actives.active_jar);
+        QuantMultiKeeperJar* the_jar = global_actives.active_jar);
     QuantPeriodizationAbstract(
-        real period, QuantFeedAbstract & quant_feed, ff_size_t lookback,
-        QuantMultiKeeperJar * the_jar = global_actives.active_jar);
+        real period, QuantFeedAbstract& quant_feed, ff_size_t lookback,
+        QuantMultiKeeperJar* the_jar = global_actives.active_jar);
 
     ~QuantPeriodizationAbstract();
 
@@ -85,8 +85,8 @@ class QuantPeriodizationAbstract
 
     void set_date_range(QuantTime start_date, QuantTime end_date);
 
-    void add(QuantBufferAbstract & buffer);
-    void add(QuantBufferAbstract & buffer, ff_size_t default_buf_size);
+    void add(QuantBufferAbstract& buffer);
+    void add(QuantBufferAbstract& buffer, ff_size_t default_buf_size);
 
     #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_PERIODIZATIONS
     /*
@@ -163,7 +163,7 @@ class QuantPeriodizationAbstract
             p_bid_volume, p_spread);
     }
     inline void accumulate_from_feed_tick_ask(
-        const QuantTick & tick)
+        const QuantTick& tick)
     {
         accumulate_tickish(
             // qt.flags,
@@ -175,7 +175,7 @@ class QuantPeriodizationAbstract
             tick.bid_volume, tick.ask - tick.bid);
     }
     inline void accumulate_from_feed_tick_bid(
-        const QuantTick & tick)
+        const QuantTick& tick)
     {
         accumulate_tickish(
             // qt.flags,
@@ -187,7 +187,7 @@ class QuantPeriodizationAbstract
             tick.bid_volume, tick.ask - tick.bid);
     }
     inline void
-    accumulate_from_source_candle(const QuantPeriodizationAbstract & per)
+    accumulate_from_source_candle(const QuantPeriodizationAbstract& per)
     {
         //_Dn("<" << period << "> accumulate_from_source_candle() " <<
         //    per.time.last_as_const().time_of_day()); // << ": " << per.close);
@@ -436,7 +436,7 @@ class QuantPeriodizationAbstract
         // // //
     }
 
-    QuantMultiKeeperJar * the_jar;
+    QuantMultiKeeperJar* the_jar;
 
     // QuantFeedAbstract* quant_feed;
     // QuantPeriodizationAbstract* period_feed;
@@ -471,7 +471,7 @@ class QuantPeriodizationAbstract
 
 QuantPeriodizationAbstract::QuantPeriodizationAbstract(
     real period, ff_size_t lookback,
-    QuantMultiKeeperJar * the_jar)
+    QuantMultiKeeperJar* the_jar)
     : buffer_heap{ lookback }
     , the_jar{ the_jar } //, period_feed{ &period_feed }
     , default_buf_size{ lookback }
@@ -480,8 +480,8 @@ QuantPeriodizationAbstract::QuantPeriodizationAbstract(
     commonInit(period);
 }
 QuantPeriodizationAbstract::QuantPeriodizationAbstract(
-    real p_period, QuantFeedAbstract & quant_feed, ff_size_t lookback,
-    QuantMultiKeeperJar * the_jar)
+    real p_period, QuantFeedAbstract& quant_feed, ff_size_t lookback,
+    QuantMultiKeeperJar* the_jar)
     : buffer_heap{ lookback }
     , the_jar{ the_jar } //, quant_feed{ &quant_feed }
     , default_buf_size{ lookback }
@@ -547,12 +547,12 @@ void QuantPeriodizationAbstract::commonInit(real p_period)
 //    likely_end_date = p_end_date;
 //}
 
-void QuantPeriodizationAbstract::add(QuantBufferAbstract & buffer)
+void QuantPeriodizationAbstract::add(QuantBufferAbstract& buffer)
 {
     buffer_heap.add(buffer);
 }
 
-void QuantPeriodizationAbstract::add(QuantBufferAbstract & buffer,
+void QuantPeriodizationAbstract::add(QuantBufferAbstract& buffer,
                                      ff_size_t default_buf_size)
 {
     buffer_heap.add(buffer, default_buf_size);

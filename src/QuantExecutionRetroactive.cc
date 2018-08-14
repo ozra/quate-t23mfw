@@ -93,16 +93,16 @@ class QuantExecutionRetroactive : public QuantExecutionContext
                               bool is_optimization);
     ~QuantExecutionRetroactive();
 
-    void add(QuantStudyContextAbstract * study);
-    void add(QuantFeedAbstract * feed);
-    void add(QuantPeriodizationAbstract * periodization);
+    void add(QuantStudyContextAbstract* study);
+    void add(QuantFeedAbstract* feed);
+    void add(QuantPeriodizationAbstract* periodization);
 
     int run(void);
 
   private:
-    vector<QuantStudyContextAbstract *> studies;
-    vector<QuantFeedAbstract *> feeds;
-    vector<QuantPeriodizationAbstract *> periodizations;
+    vector<QuantStudyContextAbstract*> studies;
+    vector<QuantFeedAbstract*> feeds;
+    vector<QuantPeriodizationAbstract*> periodizations;
 
     // Str                         symbol;
     retro_mode mode;
@@ -124,18 +124,18 @@ QuantExecutionRetroactive::QuantExecutionRetroactive(
 
 QuantExecutionRetroactive::~QuantExecutionRetroactive() {}
 
-void QuantExecutionRetroactive::add(QuantStudyContextAbstract * study)
+void QuantExecutionRetroactive::add(QuantStudyContextAbstract* study)
 {
     studies.push_back(study);
 }
 
-void QuantExecutionRetroactive::add(QuantFeedAbstract * feed)
+void QuantExecutionRetroactive::add(QuantFeedAbstract* feed)
 {
     // feed->set_date_range( start_date, end_date );
     feeds.push_back(feed);
 }
 
-void QuantExecutionRetroactive::add(QuantPeriodizationAbstract *
+void QuantExecutionRetroactive::add(QuantPeriodizationAbstract*
                                     periodization)
 {
     // periodization->set_date_range( start_date, end_date );
@@ -285,7 +285,7 @@ int QuantExecutionRetroactive::run(void)
 {
     cerr << "\n- - - - -\n";
     cerr << "QuantExecutionRetroactive::run\n\n";
-    vector<QuantFeedAbstract *> study_feeds; // so that we can remove feeds as
+    vector<QuantFeedAbstract*> study_feeds;  // so that we can remove feeds as
     // they reach their last values -
     // might change the implementation
     // to check them every loop - will
@@ -319,7 +319,7 @@ int QuantExecutionRetroactive::run(void)
     //# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     //# # #
     // Historical / backtest event loop  - 2014-09-11/ORC(21:03)
-    QuantFeedAbstract * nearest_feed = nullptr;
+    QuantFeedAbstract* nearest_feed = nullptr;
     QuantTime lowest_time;
     cerr << "\n- - - - -\n";
     cerr << "QuantExecutionRetroactive - Begins spool to start-time pre loop"

@@ -22,7 +22,7 @@ class QuantBufferAbstract
     //    capacity( size_capacity )
     QuantBufferAbstract(
         ff_size_t size_capacity, // = 0,
-        QuantBufferJar * owning_buf_jar // = global_actives.active_buffer_jar //nullptr
+        QuantBufferJar* owning_buf_jar  // = global_actives.active_buffer_jar //nullptr
     ) :
         owning_buf_jar(
             owning_buf_jar),   //? owning_buf_jar : global_actives.active_buffer_jar ),
@@ -45,7 +45,7 @@ class QuantBufferAbstract
         virtual T& operator[] ( int backwards_index ) = 0;
     */
 
-    inline void relocate_heap_ptr(QuantTypeSized * ptr)
+    inline void relocate_heap_ptr(QuantTypeSized* ptr)
     {
         // Set head_ptr to point to the [0] element - this may be the last
         // element in the buffer, or 2nd last - if [-1] is allowed as last
@@ -63,10 +63,10 @@ class QuantBufferAbstract
     //virtual int getDataTypeSize () = 0;
     //virtual int getZeroOffset () = 0;
 
-    QuantBufferIntertwinedHeap *
+    QuantBufferIntertwinedHeap*
     owning_heap;  // *TODO* *DUMP*?? Set from outside by **Heap.. More of a dev / debug safety measure than necessity - 2014-09-12/ORC(17:44)
 
-    QuantBufferJar *
+    QuantBufferJar*
     owning_buf_jar;   // More of a dev / debug safety measure than necessity - 2014-09-12/ORC(17:44)
 
     #ifdef IS_DEBUG
@@ -77,8 +77,8 @@ class QuantBufferAbstract
     ff_size_t             capacity = 0;
     ff_size_t             size = 0;
 
-    QuantTypeSized   *  tail_ptr; // = nullptr;
-    QuantTypeSized   *  head_ptr; // = nullptr;
+    QuantTypeSized*     tail_ptr; // = nullptr;
+    QuantTypeSized*     head_ptr; // = nullptr;
 
 };
 

@@ -24,7 +24,7 @@ class QuantBuffer : public QuantBufferAbstract
 {
   public:
     QuantBuffer(ff_size_t size_capacity = 0,
-                QuantBufferJar * owning_buf_jar =
+                QuantBufferJar* owning_buf_jar =
                     global_actives.active_buffer_jar // nullptr
                )
         : QuantBufferAbstract(size_capacity, owning_buf_jar)
@@ -48,7 +48,7 @@ class QuantBuffer : public QuantBufferAbstract
         #ifdef IS_DEBUG
         assert(datum_value_has_been_set == false);
         #endif
-        *(reinterpret_cast<T_B *>(head_ptr)) = val;
+        *(reinterpret_cast<T_B*>(head_ptr)) = val;
         #ifdef IS_DEBUG
         datum_value_has_been_set = true;
         #endif
@@ -75,20 +75,20 @@ class QuantBuffer : public QuantBufferAbstract
     inline operator const T_B() const
     {
         // return *( (~) ( head_ptr ) );
-        return *(reinterpret_cast<T_B *>(head_ptr));
+        return *(reinterpret_cast<T_B*>(head_ptr));
     };
 
-    inline const T_B & last_as_const() const
+    inline const T_B& last_as_const() const
     {
         // return *( (~) ( head_ptr ) );
-        return *(reinterpret_cast<T_B *>(head_ptr));
+        return *(reinterpret_cast<T_B*>(head_ptr));
     };
 
     // constexpr typename _get_type() { return T_B };
 
     inline T_B operator()() const
     {
-        return *(reinterpret_cast<T_B *>(head_ptr)); // Returning a reference is
+        return *(reinterpret_cast<T_B*>(head_ptr));  // Returning a reference is
         // good because it can be
         // assigned to - BUT - we
         // don't want the
@@ -102,23 +102,23 @@ class QuantBuffer : public QuantBufferAbstract
         // cerr << "QuantBuffer::[] " << backwards_index << " - ptr is: " <<
         // (reinterpret_cast<unsigned>(head_ptr)) << "\n";
         assert(backwards_index < capacity);
-        return *(reinterpret_cast<T_B *>(head_ptr) - backwards_index);
+        return *(reinterpret_cast<T_B*>(head_ptr) - backwards_index);
     };
 
-    inline T_B & operator[](ff_size_t backwards_index)
+    inline T_B& operator[](ff_size_t backwards_index)
     {
         // cerr << "QuantBuffer::[] " << backwards_index << " - ptr is: " <<
         // (reinterpret_cast<unsigned>(head_ptr)) << "\n";
         assert(backwards_index < capacity);
-        return *(reinterpret_cast<T_B *>(head_ptr) - backwards_index);
+        return *(reinterpret_cast<T_B*>(head_ptr) - backwards_index);
     };
 
-    inline T_B * getPtrTo(ff_size_t backwards_index) const
+    inline T_B* getPtrTo(ff_size_t backwards_index) const
     {
         // cerr << "QuantBuffer::[] " << backwards_index << " - ptr is: " <<
         // (reinterpret_cast<unsigned>(head_ptr)) << "\n";
         assert(backwards_index < capacity);
-        return (reinterpret_cast<T_B *>(head_ptr) - backwards_index);
+        return (reinterpret_cast<T_B*>(head_ptr) - backwards_index);
     };
 };
 
@@ -128,12 +128,12 @@ class QuantBuffer : public QuantBufferAbstract
  */
 
 template <typename T>
-inline void set(QuantBuffer<T> & b, T val)
+inline void set(QuantBuffer<T>& b, T val)
 {
     assert(b.size > 0);
     assert(b.datum_value_has_been_set == false);
     // assert( b.get_type() == T );
-    *(reinterpret_cast<T *>(b.head_ptr)) = val;
+    *(reinterpret_cast<T*>(b.head_ptr)) = val;
     #ifdef IS_DEBUG
     b.datum_value_has_been_set = true;
     #endif

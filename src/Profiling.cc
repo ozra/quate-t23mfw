@@ -21,7 +21,7 @@ template <typename ProfileEnum, natural HIGHEST_ENUM, natural STACK_SIZE = 1024>
 class Profiling
 {
   public:
-    Profiling(const char * ProfileLabels[]) : ProfileLabels(ProfileLabels)
+    Profiling(const char* ProfileLabels[]) : ProfileLabels(ProfileLabels)
     {
         past = std::chrono::high_resolution_clock::now();
         profile_what[0] = ProfileEnum(0);
@@ -111,7 +111,7 @@ class Profiling
     }
 
   private:
-    const char ** ProfileLabels;
+    const char** ProfileLabels;
     ProfileEnum profile_what[STACK_SIZE]; // Will not grow even this big..
     natural stack_pos = 0;
     bool overflowed_ = false;

@@ -17,7 +17,7 @@ class Instrument
 {
   public:
     Instrument() {};
-    Instrument(char const * const symbol, natural leverage_ratio,
+    Instrument(char const* const symbol, natural leverage_ratio,
                natural significant_decimals)
         : symbol_name_(symbol)
         , symbol_code_(get_symbol_number_code(symbol))
@@ -29,7 +29,7 @@ class Instrument
     }
     */
 
-    char const * const symbol_name_ = nullptr;
+    char const* const symbol_name_ = nullptr;
     SecurityNumberCode symbol_code_ = NIL;
     natural leverage_ratio_ = 1;
     natural significant_decimals_ = 0;

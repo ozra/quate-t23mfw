@@ -201,7 +201,7 @@ class TradeDeskAbstract
 
     virtual OrderStatus orderStatus(OrderId order_id) = 0;
     virtual bool cancelOrder(OrderId order_id) = 0;
-    virtual vector<OrderId> * getOpenOrders() = 0;
+    virtual vector<OrderId>* getOpenOrders() = 0;
 
     real get_balance();
     real get_usable_funds();

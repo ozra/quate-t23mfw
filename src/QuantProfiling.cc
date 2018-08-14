@@ -24,7 +24,7 @@ enum QuantProfileEnum {
 
 #endif
 
-const char * QuantProfileLabels[] = {
+const char* QuantProfileLabels[] = {
     "-NULL-",                       "Startup",
     "General",                      "Loading files - T23M-format",
     "Decoding data - T23M-format",  "Loading files - Dukas-format",
@@ -40,8 +40,8 @@ QuantProfiler;
 extern QuantProfiler profiler;
 
 #define profiling profiler
-inline void start(QuantProfiler & p, QuantProfileEnum what) { p.start(what); }
-inline void stop(QuantProfiler & p, QuantProfileEnum what) { p.end(what); }
+inline void start(QuantProfiler& p, QuantProfileEnum what) { p.start(what); }
+inline void stop(QuantProfiler& p, QuantProfileEnum what) { p.end(what); }
 
 #endif
 

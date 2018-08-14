@@ -58,8 +58,8 @@ namespace fs = boost::filesystem;
 enum enum_load_result { SUCCESS = 0, EMPTY_FILE = 1, MISSING_FILE = 2 };
 
 template <typename T>
-enum_load_result load_file_into_existing_buffer(const char * p_filename,
-        MutatingBuffer<T> & buffer);
+enum_load_result load_file_into_existing_buffer(const char* p_filename,
+        MutatingBuffer<T>& buffer);
 
 /*
 template <typename T>
@@ -143,8 +143,8 @@ class FilePrefetcher {
 */
 
 template <typename T>
-enum_load_result load_file_into_existing_buffer(const char * p_filename,
-        MutatingBuffer<T> & buffer)
+enum_load_result load_file_into_existing_buffer(const char* p_filename,
+        MutatingBuffer<T>& buffer)
 {
     fs::path filename(p_filename);
     if (fs::exists(filename) == false || fs::is_regular(filename) == false) {
@@ -178,7 +178,7 @@ enum_load_result load_file_into_existing_buffer(const char * p_filename,
         // new_size = fin.tellg();
         // fin.seekg( 0, fs::ifstream::beg );
         buffer.resize(new_size); //, false);
-        fin.read(reinterpret_cast<char *>(buffer.front()), new_size);
+        fin.read(reinterpret_cast<char*>(buffer.front()), new_size);
         fin.close();
     }
     /*

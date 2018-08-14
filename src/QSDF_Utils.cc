@@ -19,13 +19,13 @@ typedef int8_t s8;
 typedef const u8 c_u8;
 typedef const s8 c_s8;
 
-void cerrbug_a_buffer(u8 * byte_buffer, size_t byte_buffer_size);
+void cerrbug_a_buffer(u8* byte_buffer, size_t byte_buffer_size);
 
 template <typename T>
-inline T readBigEndian32(c_u8 * buffer)
+inline T readBigEndian32(c_u8* buffer)
 {
     T value;
-    u8 * val_ptr = reinterpret_cast<u8 *>(&value);
+    u8* val_ptr = reinterpret_cast<u8*>(&value);
     val_ptr[0] = buffer[3];
     val_ptr[1] = buffer[2];
     val_ptr[2] = buffer[1];
@@ -33,31 +33,30 @@ inline T readBigEndian32(c_u8 * buffer)
     return value;
 }
 
-inline auto read_string(u8 *& data) -> const char *
+inline auto read_string(u8*& data) -> const char*
 {
-    const char * out_ptr = (const char *)data;
-    data += std::strlen((char *)data) + 1;
+    const char* out_ptr = (const char*)data;
+    data += std::strlen((char*)data) + 1;
     return out_ptr;
 }
 
-inline auto write_string(u8 *& data, const char * str) -> u8 * {
-    std::strcpy((char *)data, str);
-    data += std::strlen((char *)data) + 1;
+inline auto write_string(u8*& data, const char* str) -> u8* {
+    std::strcpy((char*)data, str);
+    data += std::strlen((char*)data) + 1;
     return data;
 }
 
 /*
  * The following version of encoders/decoders modify the pointer naturally
  **/
-inline void skip_varilen(u8 *& data)
+inline void skip_varilen(u8*& data)
 {
     // *UNTESTED*
-    while ((*data++ & 0x80) != 0)
-        ;
+    while ((*data++ & 0x80) != 0);
 }
 
 template <typename T>
-inline auto read_varilen_natural(u8 *& data) -> T {
+inline auto read_varilen_natural(u8*& data) -> T {
     T decoded_value = 0;
     int shift_amount = 0;
 
@@ -71,11 +70,11 @@ inline auto read_varilen_natural(u8 *& data) -> T {
 }
 
 template <typename T>
-inline auto write_varilen_natural(u8 *& buffer, T value) -> u8 * {
+inline auto write_varilen_natural(u8*& buffer, T value) -> u8* {
     do {
         u8 next_byte = value & 0x7F;
         value >>= 7;
-        if (value) // remainder non zero? Flag for one more byte
+        if (value)  // remainder non zero? Flag for one more byte
         {
             next_byte |= 0x80;
         }
@@ -93,7 +92,7 @@ Handling of integers (signed numbers) are carried out in two steps:
  / use the natural number varlen encoder. And vice versa for decode.
 */
 template <typename T>
-inline auto read_varilen_integer(u8 *& data) -> T {
+inline auto read_varilen_integer(u8*& data) -> T {
     T unsigned_value = read_varilen_natural<T>(data);
 
     return ((unsigned_value & 1) ? ~(unsigned_value >> 1)
@@ -101,16 +100,18 @@ inline auto read_varilen_integer(u8 *& data) -> T {
 }
 
 template <typename T>
-inline auto write_varilen_integer(u8 *& buffer, T value) -> u8 * {
-    uint64_t uvalue;
-    // T uvalue;
-    uvalue = T(value < 0 ? ~(value << 1) : (value << 1));
-    return write_varilen_natural<T>(buffer, uvalue);
+inline auto write_varilen_integer(u8*& buffer, T value) -> u8* {
+    uint64_t uvalue = (value < 0 ? ~(value << 1) : (value << 1));
+    return write_varilen_natural<uint64_t>(buffer, uvalue);
 }
+
+
 
 #endif
 
-void cerrbug_a_buffer(u8 * byte_buffer, size_t byte_buffer_size)
+
+
+void cerrbug_a_buffer(u8* byte_buffer, size_t byte_buffer_size)
 {
     if (byte_buffer_size < 20) {
         return;

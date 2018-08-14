@@ -33,7 +33,7 @@ class DukascopyGnrlBroker : BrokerAbstract
     // *TODO* - temp, for reference only for napkin calcs
     static const natural TRADED_SYMBOLS = 86;
 
-    auto get_instrument(const char * symbol,
+    auto get_instrument(const char* symbol,
                         QuantTime time) -> Instrument override;
 };
 
@@ -53,7 +53,7 @@ namespace t23m {
 
 //  *TODO*  switch to hashmap! - (2014-12-27 Oscar Campbell)
 
-char const * const traded_symbols[] = {
+char const* const traded_symbols[] = {
     "_NIL_",
     "AUDUSD",      "EURUSD",    "GBPUSD",        "NZDUSD",       "USDCAD",
     "USDCHF",      "USDJPY",    "AUDCAD",        "AUDCHF",       "AUDJPY",
@@ -75,7 +75,7 @@ char const * const traded_symbols[] = {
     "CHEIDXCHF"
 };
 
-Instrument DukascopyGnrlBroker::get_instrument(char const * const symbol,
+Instrument DukascopyGnrlBroker::get_instrument(char const* const symbol,
         QuantTime time)
 {
     if (search_string_list_for_matching_row(traded_symbols, TRADED_SYMBOLS + 1,

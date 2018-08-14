@@ -137,6 +137,7 @@ struct QuantElement_Trade {
 
 };
 
+// *TODO* what about "DepthSnap" for name - or "BookSnap"
 template <typename Time_T, typename Real_T, int SIZE>
 struct QuantElement_Obshot {
     Time_T       time;

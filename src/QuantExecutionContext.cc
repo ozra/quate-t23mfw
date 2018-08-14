@@ -23,7 +23,7 @@ class QuantExecutionContext
     );
     virtual ~QuantExecutionContext() = 0;
 
-    virtual void add(QuantStudyContextAbstract * study) = 0;
+    virtual void add(QuantStudyContextAbstract* study) = 0;
 
     bool isBuffersOutputEnabled();
     bool isOptimization();

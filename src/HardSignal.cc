@@ -25,10 +25,10 @@ template <class T, typename... Ps>
 struct MemberPtrPair {
     MemberPtrPair() : class_ptr{ nullptr }, fn_ptr{ nullptr } {}
 
-    MemberPtrPair(T * class_ptr, void (T::*fn_ptr)(Ps... args))
+    MemberPtrPair(T* class_ptr, void (T::*fn_ptr)(Ps... args))
         : class_ptr{ class_ptr }, fn_ptr{ fn_ptr } {}
 
-    T * class_ptr;
+    T* class_ptr;
     void (T::*fn_ptr)(Ps... args);
 };
 
@@ -69,12 +69,12 @@ class HardSignal
     }
     */
 
-    inline void operator()(T * p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
+    inline void operator()(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
     {
         connect(p_class_ptr, p_fn_ptr);
     }
 
-    inline void connect(T * p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
+    inline void connect(T* p_class_ptr, void (T::*p_fn_ptr)(Ps... args))
     {
         std::cerr << "Adding HardSignal\n";
         #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
@@ -108,7 +108,7 @@ class HardSignal
 
   private:
     #ifdef DESIGN_CHOICE__HARDSIGNAL__THE_SINGLE_LISTENER_EXPERIMENT
-    T * class_ptr = nullptr;
+    T* class_ptr = nullptr;
     void (T::*fn_ptr)(Ps...) = nullptr;
     #else
     std::vector<MemberPtrPair<T, Ps...>> funcs;

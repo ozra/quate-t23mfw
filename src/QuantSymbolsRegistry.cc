@@ -15,7 +15,7 @@ using namespace t23m;
 
 typedef std::string String;
 
-char const * const symbol_names[] = {
+char const* const symbol_names[] = {
     "_NIL_",
 
     // Cryptos, and reserved space for future cryptos
@@ -170,10 +170,10 @@ typedef enum {
 } SecurityNumberCode, CurrencyNumberCode;
 
 //SecurityNumberCode get_symbol_number_code(String symbol);
-int search_string_list_for_matching_row(char const * const list[],
-                                        int list_len, char const * const symbol);
-SecurityNumberCode get_symbol_number_code(char const * const symbol);
-char const * get_symbol_name(SecurityNumberCode code);
+int search_string_list_for_matching_row(char const* const list[],
+                                        int list_len, char const* const symbol);
+SecurityNumberCode get_symbol_number_code(char const* const symbol);
+char const* get_symbol_name(SecurityNumberCode code);
 
 }
 
@@ -181,8 +181,8 @@ char const * get_symbol_name(SecurityNumberCode code);
 
 namespace t23m {
 
-int search_string_list_for_matching_row(char const * const list[],
-                                        int list_len, char const * const symbol)
+int search_string_list_for_matching_row(char const* const list[],
+                                        int list_len, char const* const symbol)
 {
     for (auto i = 0; i < list_len; ++i) {
         if (strcmp(list[i], symbol) == 0) {
@@ -192,13 +192,13 @@ int search_string_list_for_matching_row(char const * const list[],
     return 0;   // *NOTE* - 0 is considered to be a "_NIL_" post, we do not return -1.
 }
 
-SecurityNumberCode get_symbol_number_code(char const * const symbol)
+SecurityNumberCode get_symbol_number_code(char const* const symbol)
 {
     return SecurityNumberCode(search_string_list_for_matching_row(symbol_names,
                               TOTAL_SYMBOL_COUNT, symbol));
 }
 
-char const * get_symbol_name(SecurityNumberCode code)
+char const* get_symbol_name(SecurityNumberCode code)
 {
     if (int(code) >= TOTAL_SYMBOL_COUNT) {
         code = NIL;

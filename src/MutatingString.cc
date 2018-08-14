@@ -13,7 +13,7 @@ using std::vector;
 #include <limits>
 #include <iostream>
 
-void fuglyIntIntoStr(char * buf, int n, int sizing);
+void fuglyIntIntoStr(char* buf, int n, int sizing);
 
 //! Create a string with fixed size variables that can be modified.
 /*! Saves on allocations and conversions for particular cases like slowly
@@ -35,9 +35,9 @@ class MutatingString
         buf_ptr[format_str.size()] = '\0';
     }
 
-    MutatingString & addVar(const char * symbol, int type = -1)
+    MutatingString& addVar(const char* symbol, int type = -1)
     {
-        char * var_ptr = strstr(buf_ptr, symbol);
+        char* var_ptr = strstr(buf_ptr, symbol);
         int support_val = 0;
         if (type < 0) {
             // Assume numeric and automate the length
@@ -62,16 +62,16 @@ class MutatingString
         return *this;
     }
 
-    inline const char * mutated_str()
+    inline const char* mutated_str()
     {
         // inline const char * mutated_str ( ) {
         var_pos = 0;
         return buf_ptr;
     }
 
-    inline MutatingString & operator<<(int val) { return var(val); }
+    inline MutatingString& operator<<(int val) { return var(val); }
 
-    inline MutatingString & var(int val)
+    inline MutatingString& var(int val)
     {
         if (var_compare_values[var_pos] != val) {
             var_compare_values[var_pos] = val;
@@ -88,8 +88,8 @@ class MutatingString
     }
 
   private:
-    char * buf_ptr = nullptr;
-    vector<char *> var_position_ptrs;
+    char* buf_ptr = nullptr;
+    vector<char*> var_position_ptrs;
     vector<int> var_support_data;
     vector<int> var_compare_values;
     int var_count = 0;
@@ -100,7 +100,7 @@ class MutatingString
 
 #endif
 
-void fuglyIntIntoStr(char * buf, int n, int sizing)
+void fuglyIntIntoStr(char* buf, int n, int sizing)
 {
     while (sizing > 0) {
         int foo = n / sizing;

@@ -39,7 +39,7 @@ template <typename T> class MutatingBuffer
         _Dn("MutatingBuffer::constructor - JUST AN EMPTY REFERENCE\n");
     }
 
-    MutatingBuffer(MutatingBuffer<T> & other)
+    MutatingBuffer(MutatingBuffer<T>& other)
         : buffer_front_{ other._buffer_front_ }
         , capacity_{ other.size_ }
         , size_{ other.size_ }
@@ -48,14 +48,14 @@ template <typename T> class MutatingBuffer
         , is_just_a_reference_{ true }
     {
         _Dn("MutatingBuffer::COPY constructor - A CLONED REFERENCE\n");
-        _Dn("buffer_ = " << (void *)buffer_front_ << "\n"
+        _Dn("buffer_ = " << (void*)buffer_front_ << "\n"
             << "capacity_ = " << capacity_ << "\n"
             << "size_ = " << size_ << "\n"
             << "is_just_a_reference_ = " << is_just_a_reference_ << "\n"
             << "\n");
     }
 
-    MutatingBuffer(MutatingBuffer<T> && other)
+    MutatingBuffer(MutatingBuffer<T>&& other)
         : buffer_front_{ other.buffer_front_ }
         , capacity_{ other.size_ }
         , size_{ other.size_ }
@@ -63,7 +63,7 @@ template <typename T> class MutatingBuffer
         , is_just_a_reference_{ true }
     {
         _Dn("MutatingBuffer::MOVE constructor - A CLONED REFERENCE\n");
-        _Dn("buffer_ = " << (void *)buffer_front_ << "\n"
+        _Dn("buffer_ = " << (void*)buffer_front_ << "\n"
             << "capacity_ = " << capacity_ << "\n"
             << "size_ = " << size_ << "\n"
             << "is_just_a_reference_ = " << is_just_a_reference_ << "\n"
@@ -76,13 +76,13 @@ template <typename T> class MutatingBuffer
             << " mutations = " << mutations_ << "\n");
         if (is_just_a_reference_ == false) {
             _Dn("Is not a reference only, we delete "
-                << (void *)buffer_front_);
+                << (void*)buffer_front_);
             //delete[] buffer_front_;
             free(buffer_front_);
         }
     }
 
-    T * resize(ff_size_t size) // , bool maintain_current_data = true)
+    T* resize(ff_size_t size)  // , bool maintain_current_data = true)
     {
         reserve(size); //, maintain_current_data);
         size_ = size;
@@ -91,7 +91,7 @@ template <typename T> class MutatingBuffer
         return buffer_front_;
     }
 
-    T * reserve(ff_size_t size) //, bool maintain_current_data = true)
+    T* reserve(ff_size_t size)  //, bool maintain_current_data = true)
     {
         // *TODO* as of 2014-12-29  it always maintains (changed from new/delete to realloc..)
         _Dn("MutatingBuffer::reserve" << size << "\n");
@@ -114,8 +114,8 @@ template <typename T> class MutatingBuffer
             // Oscar Campbell
             _Dn("mutation(): new size is " << size << " new capacity is "
                 << capacity_ << "\n");
-            buffer_front_ = (T *) realloc(buffer_front_,
-                                          capacity_ * sizeof(T)); // nullptr safe
+            buffer_front_ = (T*) realloc(buffer_front_,
+                                         capacity_ * sizeof(T)); // nullptr safe
             /*
 
             T* curr_buf = buffer_front_;
@@ -163,7 +163,7 @@ template <typename T> class MutatingBuffer
         return (std::min(size_, specified_buffer_limit_));
     }
 
-    inline T * consume_specified_buffer()
+    inline T* consume_specified_buffer()
     {
         rewind_shuffle(buffered_count());
         return buffer_front_;
@@ -208,7 +208,7 @@ template <typename T> class MutatingBuffer
 
     //! The same as rewind_shuffle ( int count ) but calculates the count
     //  from the pointer compared to front(). Excluding pointer position!
-    void rewind_shuffle(T * buf_ptr)
+    void rewind_shuffle(T* buf_ptr)
     {
         _Dn("rewind_shuffle with ptr");
         rewind_shuffle((int)(buf_ptr - buffer_front_));
@@ -243,7 +243,7 @@ template <typename T> class MutatingBuffer
         push(val);
     }
 
-    inline void append(void * buf, ff_size_t len)   // (2014-12-28 Oscar Campbell)
+    inline void append(void* buf, ff_size_t len)    // (2014-12-28 Oscar Campbell)
     {
         // *TODO* keep track of largest appended block, as well as largestspan of
         // loose ptr running to estimate future block add sizes for better prediction
@@ -251,7 +251,7 @@ template <typename T> class MutatingBuffer
         if (size_ + len > capacity_) {
             reserve(size_ + len); //, true);
         }
-        std::memcpy(static_cast<void *>(buffer_cursor_), static_cast<void *>(buf),
+        std::memcpy(static_cast<void*>(buffer_cursor_), static_cast<void*>(buf),
                     len);
         buffer_cursor_ += len;
     }
@@ -269,11 +269,11 @@ template <typename T> class MutatingBuffer
     inline void reset_read_cursor() { buffer_cursor_ = buffer_front_; }
 
     #ifdef IS_DEBUG
-    inline T * on_free_leash_for(int expected_count)
+    inline T* on_free_leash_for(int expected_count)
     {
         expected_free_leash_movement_ = expected_count;
     #else
-    inline T * on_free_leash_for(int)
+    inline T* on_free_leash_for(int)
     {
     #endif
         return buffer_cursor_;
@@ -284,7 +284,7 @@ template <typename T> class MutatingBuffer
         _Dn("catch_up_reads, with count int");
         catch_up_reads(buffer_end_ + count);
     }
-    inline void catch_up_reads(T * buf_ptr)
+    inline void catch_up_reads(T* buf_ptr)
     {
         #ifdef IS_DEBUG
         ff_size_t count = ff_size_t(buf_ptr - buffer_cursor_);
@@ -306,7 +306,7 @@ template <typename T> class MutatingBuffer
         _Dn("catch_up_writes, with count int");
         catch_up_writes(buffer_end_ + count);
     }
-    inline void catch_up_writes(T * buf_ptr)
+    inline void catch_up_writes(T* buf_ptr)
     {
         int count = (int)(buf_ptr - buffer_cursor_);
         #ifdef IS_DEBUG
@@ -326,7 +326,7 @@ template <typename T> class MutatingBuffer
     }
 
     #ifdef IS_DEEPBUG
-    inline bool verify_pointer(T * buf_ptr)
+    inline bool verify_pointer(T* buf_ptr)
     {
         if (buf_ptr > buffer_capacity_end_) {
             _Dn("discrepancy: " << (buf_ptr - buffer_front_)
@@ -340,7 +340,7 @@ template <typename T> class MutatingBuffer
         return true;
     }
     #else
-    inline bool verify_pointer(T *) { return true; }
+    inline bool verify_pointer(T*) { return true; }
     #endif
 
     /*
@@ -363,42 +363,42 @@ template <typename T> class MutatingBuffer
         return buffer_;
     }
     */
-    inline T * front()
+    inline T* front()
     {
         // cerr << "begin()";
         return buffer_front_;
     }
-    inline T * begin()
+    inline T* begin()
     {
         // cerr << "begin()";
         return buffer_front_;
     }
-    inline T * end()
+    inline T* end()
     {
         // cerr << "end()";
         return buffer_end_;
     }
-    inline T * back()
+    inline T* back()
     {
         // cerr << "end()";
         return buffer_end_;
     }
-    inline T * limit()
+    inline T* limit()
     {
         // cerr << "limit()";
         return buffer_capacity_end_;
     }
-    inline T * spec_limit()
+    inline T* spec_limit()
     {
         // cerr << "limit()";
         return buffer_front_ + specified_buffer_limit_;
     }
 
   private:
-    T * buffer_front_ = nullptr;
-    T * buffer_end_ = nullptr;
-    T * buffer_capacity_end_ = nullptr;
-    T * buffer_cursor_ = nullptr;
+    T* buffer_front_ = nullptr;
+    T* buffer_end_ = nullptr;
+    T* buffer_capacity_end_ = nullptr;
+    T* buffer_cursor_ = nullptr;
 
     ff_size_t capacity_ = 0;
     ff_size_t size_ = 0;
@@ -417,7 +417,7 @@ template <typename T> class MutatingBuffer
 };
 
 // Playing with functionalism for aestethics
-template <typename T> inline auto front_of(MutatingBuffer<T> & buf) -> T * {
+template <typename T> inline auto front_of(MutatingBuffer<T>& buf) -> T* {
     return buf.begin();
 }
 

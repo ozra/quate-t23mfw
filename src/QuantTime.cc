@@ -230,7 +230,7 @@ class QuantTimeStamp
     void operator+=(T duration) { timestamp_ += duration; }
 
     template <time_scale IN_SCALE, typename IN_T>
-    void operator+=(QuantTimeStamp<IN_SCALE, IN_T> & quant_time)
+    void operator+=(QuantTimeStamp<IN_SCALE, IN_T>& quant_time)
     {
         timestamp_ += (quant_time.timestamp_ * IN_SCALE / TIME_SCALE);
     }
@@ -331,8 +331,8 @@ class QuantTimeStamp
 
 template <time_scale RES_A, typename T_A, time_scale RES_B,
           typename T_B>
-QuantTimeStamp<RES_A, T_A> operator+(QuantTimeStamp<RES_A, T_A> & qts_a,
-                                     QuantTimeStamp<RES_B, T_B> & qts_b)
+QuantTimeStamp<RES_A, T_A> operator+(QuantTimeStamp<RES_A, T_A>& qts_a,
+                                     QuantTimeStamp<RES_B, T_B>& qts_b)
 {
     return QuantTimeStamp<RES_A, T_A>(qts_a.timestamp_ +
                                       ((qts_b.timestamp_ * RES_B) / RES_A));

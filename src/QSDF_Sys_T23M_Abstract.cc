@@ -159,7 +159,7 @@ class QSDF_Sys_T23M_Abstract
         open_output_file_to_current_location();
         _DPn("BEFORE any writings byte size is: "
              << raw_buffer.size() << "capacity is " << raw_buffer.capacity()
-             << " ptr is " << (void *)raw_buffer.front());
+             << " ptr is " << (void*)raw_buffer.front());
         cerrbug_a_buffer(raw_buffer.front(), raw_buffer.size());
         write_page_header_and_formalia();
     }
@@ -200,8 +200,8 @@ class QSDF_Sys_T23M_Abstract
   private:
     // const char *    generate_locator_path ( pxt::ptime time_pos );
     virtual auto generate_locator_path() -> string = 0;
-    virtual auto read_page_header(byte *) -> byte * = 0;
-    virtual auto write_page_header(byte *) -> byte * = 0;
+    virtual auto read_page_header(byte*) -> byte* = 0;
+    virtual auto write_page_header(byte*) -> byte* = 0;
 
     arbitrary_return_code load_next_page_file()
     {
@@ -244,7 +244,7 @@ class QSDF_Sys_T23M_Abstract
 // else status == 0 som det ska vara...
         #ifdef IS_DEEPBUG
         _DPn("BEFORE decoding byte size is: " << raw_buffer.size() << " ptr is "
-             << (void *)raw_buffer.front()
+             << (void*)raw_buffer.front()
              << "\n");
         cerrbug_a_buffer(raw_buffer.front(), raw_buffer.size());
         #endif
@@ -260,7 +260,7 @@ class QSDF_Sys_T23M_Abstract
     void read_page_header_and_formalia()
     {
         _DPn("read_page_header_and_formalia()");
-        byte * rdptr = raw_buffer.on_free_leash_for(100);
+        byte* rdptr = raw_buffer.on_free_leash_for(100);
         int64_t check = 0;
         check = read_varilen_natural<int>(rdptr);
         assert(check == 47);
@@ -283,7 +283,7 @@ class QSDF_Sys_T23M_Abstract
     void write_page_header_and_formalia()
     {
         _DP("QuSeqDaCon::T23MFWTicks::write_page_header_and_formalia()\n");
-        byte * wrpos = raw_buffer.on_free_leash_for(100);
+        byte* wrpos = raw_buffer.on_free_leash_for(100);
         write_varilen_natural(wrpos, 47);
         write_varilen_integer(wrpos, -47);
         write_varilen_natural(wrpos, 71);
@@ -368,7 +368,7 @@ class QSDF_Sys_T23M_Abstract
         // *TEMP*
         raw_buffer.verify_pointer(raw_buffer.front() + bytes_to_write);
         profiler.start(WRITING_FILE);
-        out_file_.write(reinterpret_cast<char *>(raw_buffer.begin()),
+        out_file_.write(reinterpret_cast<char*>(raw_buffer.begin()),
                         bytes_to_write);
         profiler.end(WRITING_FILE);
         raw_buffer.consume_specified_buffer();

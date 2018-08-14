@@ -16,7 +16,7 @@ class BrokerAbstract
 {
     BrokerAbstract();
     //~BrokerAbstract ();
-    virtual auto get_instrument(char const * const symbol,
+    virtual auto get_instrument(char const* const symbol,
                                 QuantTime time) -> Instrument = 0;
 };
 

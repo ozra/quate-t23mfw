@@ -170,13 +170,13 @@ class QuantBufferAbstract;
 class QuantActiveContainersSetupSingleton
 {
   public:
-    QuantExecutionContext * run_context = nullptr;
-    QuantMultiKeeperJar * active_jar = nullptr;
-    QuantBufferJar * active_buffer_jar = nullptr;
-    QuantFeedAbstract * active_feed = nullptr;
-    QuantPeriodizationAbstract * active_periodization = nullptr;
-    QuantBufferIntertwinedHeap * active_buffer_heap = nullptr;
-    HashTree * active_conf = nullptr;
+    QuantExecutionContext* run_context = nullptr;
+    QuantMultiKeeperJar* active_jar = nullptr;
+    QuantBufferJar* active_buffer_jar = nullptr;
+    QuantFeedAbstract* active_feed = nullptr;
+    QuantPeriodizationAbstract* active_periodization = nullptr;
+    QuantBufferIntertwinedHeap* active_buffer_heap = nullptr;
+    HashTree* active_conf = nullptr;
 };
 
 extern QuantActiveContainersSetupSingleton global_actives;
@@ -191,23 +191,23 @@ class QuantMultiKeeperJar
 {
   public:
     QuantMultiKeeperJar();
-    QuantMultiKeeperJar(HashTree & conf);
+    QuantMultiKeeperJar(HashTree& conf);
     ~QuantMultiKeeperJar();
 
-    QuantExecutionContext * run_context = nullptr;
-    HashTree * conf = nullptr;
-    vector<QuantFeedAbstract *> feeds;
-    vector<QuantPeriodizationAbstract *> periodizations;
+    QuantExecutionContext* run_context = nullptr;
+    HashTree* conf = nullptr;
+    vector<QuantFeedAbstract*> feeds;
+    vector<QuantPeriodizationAbstract*> periodizations;
 
-    void add(QuantFeedAbstract * feed);
-    void add(QuantPeriodizationAbstract * periodization);
+    void add(QuantFeedAbstract* feed);
+    void add(QuantPeriodizationAbstract* periodization);
 };
 
 #endif
 
 QuantMultiKeeperJar::QuantMultiKeeperJar() { global_actives.active_jar = this; }
 
-QuantMultiKeeperJar::QuantMultiKeeperJar(HashTree & conf)
+QuantMultiKeeperJar::QuantMultiKeeperJar(HashTree& conf)
     : conf{ &conf }
 {
     global_actives.active_jar = this;
@@ -216,13 +216,13 @@ QuantMultiKeeperJar::QuantMultiKeeperJar(HashTree & conf)
 
 QuantMultiKeeperJar::~QuantMultiKeeperJar() {}
 
-void QuantMultiKeeperJar::add(QuantFeedAbstract * feed)
+void QuantMultiKeeperJar::add(QuantFeedAbstract* feed)
 {
     feeds.push_back(feed);
     // run_context->add( feed );
 }
 
-void QuantMultiKeeperJar::add(QuantPeriodizationAbstract * periodization)
+void QuantMultiKeeperJar::add(QuantPeriodizationAbstract* periodization)
 {
     periodizations.push_back(periodization);
     // run_context->add( periodization );
@@ -241,9 +241,9 @@ class QuantBufferJar
         global_actives.active_buffer_jar = this;
     }
 
-    inline void add(QuantBufferAbstract * buffer) { buffers.push_back(buffer); }
+    inline void add(QuantBufferAbstract* buffer) { buffers.push_back(buffer); }
 
-    vector<QuantBufferAbstract *> buffers;
+    vector<QuantBufferAbstract*> buffers;
 };
 
 #endif

@@ -55,7 +55,7 @@ class QuantFeedAbstract
      */
 
     QuantFeedAbstract(string broker_id, string symbol_id, int lookback = 0,
-                      QuantMultiKeeperJar * the_jar = global_actives.active_jar);
+                      QuantMultiKeeperJar* the_jar = global_actives.active_jar);
 
     ~QuantFeedAbstract();
 
@@ -67,7 +67,7 @@ class QuantFeedAbstract
     virtual void emit() = 0;
 
     #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_FEEDS
-    HardSignal<QuantPeriodizationAbstract, QuantFeedAbstract &>
+    HardSignal<QuantPeriodizationAbstract, QuantFeedAbstract&>
     onRegulatedTick_P;
     #else
     SwiftSignal onRegulatedTick;
@@ -125,7 +125,7 @@ class QuantFeedAbstract
     bool do_debug_the_time = false;
 };
 
-inline void debug_a_tick(QuantTick & tick)
+inline void debug_a_tick(QuantTick& tick)
 {
     cerr << tick.time << " " << tick.ask << " " << tick.bid << " "
          << tick.ask_volume << " " << tick.bid_volume << " "
@@ -153,7 +153,7 @@ QuantFeedAbstract::QuantFeedAbstract (
 
 QuantFeedAbstract::QuantFeedAbstract(string broker_id, string symbol_id,
                                      int lookback,
-                                     QuantMultiKeeperJar * the_jar)
+                                     QuantMultiKeeperJar* the_jar)
     : ticks(lookback + 2)
       // +1 for current tick, +1 for prev. tick
       //,  the_jar{ the_jar }
@@ -268,9 +268,9 @@ bool QuantFeedAbstract::readNext()
     // cerr << "readNext() - Advance ticks" << "\n";
     if (LIKELY(has_buffered == false)) {
         #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
-        QuantTick & tick = ticks.advance();
+        QuantTick& tick = ticks.advance();
         #else
-        QuantTick * tick = &ticks.advance();
+        QuantTick* tick = &ticks.advance();
         #endif
 // cerr << "r";
         #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
@@ -329,7 +329,7 @@ bool QuantFeedAbstract::readNext()
             // *TODO* test if making specific field copies (Since not all are
             // used) is faster - and done in correct sequence of course
             #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
-            const QuantTick & prev = ticks[1];
+            const QuantTick& prev = ticks[1];
             buffered_tick = tick;
             tick.time = next_regulated_tick_time;
             tick.ask = prev.ask;
@@ -340,7 +340,7 @@ bool QuantFeedAbstract::readNext()
             has_buffered = true;
             next_regulated_tick_time += regulated_interval;
             #else
-            const QuantTick & prev = ticks[1];
+            const QuantTick& prev = ticks[1];
             buffered_tick = tick;
             tick->time = next_regulated_tick_time;
             tick->ask = prev.ask;
@@ -381,12 +381,12 @@ bool QuantFeedAbstract::readNext()
             ++ghost_tick_count;
             #endif
             #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
-            auto & tick = ticks();
+            auto& tick = ticks();
             #else
-            auto * tick = &ticks();
+            auto* tick = &ticks();
             #endif
             #ifdef DESIGN_CHOICE__FEED_TICK_REF_MICRO_OPT_TEST_3
-            const QuantTick & prev = ticks[1];
+            const QuantTick& prev = ticks[1];
             tick.time = next_regulated_tick_time;
             tick.ask = prev.ask;
             tick.bid = prev.bid;

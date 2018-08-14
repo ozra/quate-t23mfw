@@ -172,13 +172,13 @@ void doTimeTests()
     pxt::ptime epoch_1970_test(makeTime("1970-01-01 00:00:00.000"));
     pxt::ptime test_date(makeTime("2013-12-01 23:14:46.123456"));
     cerr << "ptime info - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&test_date) << "\n";
+         << *reinterpret_cast<uint64_t*>(&test_date) << "\n";
     cerr << "epoch 1900 - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&epoch_1900_test) << "\n";
+         << *reinterpret_cast<uint64_t*>(&epoch_1900_test) << "\n";
     cerr << "epoch '70 - evil cast gives: "
-         << *reinterpret_cast<uint64_t *>(&epoch_1970_test) << "\n";
+         << *reinterpret_cast<uint64_t*>(&epoch_1970_test) << "\n";
     cerr << "ptime info - evil cast / (1000*60*60*24*365) : "
-         << (*reinterpret_cast<uint64_t *>(&test_date) /
+         << (*reinterpret_cast<uint64_t*>(&test_date) /
              (1000LL * 60 * 60 * 24 * 365LL)) << "\n";
     cerr << "\n\n";
     qts::EpochS epoch_x(qts::EpochS::hours(5));
@@ -220,7 +220,7 @@ void doDataTypeTests()
            #+#       #+# #+#     #+#     #+#     #+#   #+#+#
            ###       ### ###     ### ########### ###    ####
 */
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
     profiler.start(STARTUP);
     std::cerr.sync_with_stdio(false);

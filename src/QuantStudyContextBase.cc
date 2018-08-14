@@ -47,7 +47,7 @@ template <bool PLOTTING_USED>
 class QuantStudyContext : public QuantStudyContextAbstract
 {
   public:
-    QuantStudyContext(HashTree & conf);
+    QuantStudyContext(HashTree& conf);
     virtual ~QuantStudyContext();
 
     bool verify_buffers();      // 141012/ORC
@@ -116,12 +116,12 @@ class QuantStudyContext : public QuantStudyContextAbstract
     int                 plot_ix = 0;
     int                 value_count_ix = 0;
 
-    PlotCollection   *   plot_data = nullptr;
+    PlotCollection*      plot_data = nullptr;
 
 };
 
 template <bool PLOTTING_USED>
-QuantStudyContext<PLOTTING_USED>::QuantStudyContext(HashTree & conf)
+QuantStudyContext<PLOTTING_USED>::QuantStudyContext(HashTree& conf)
     :
     QuantStudyContextAbstract(conf)
 {

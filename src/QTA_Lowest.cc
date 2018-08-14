@@ -37,7 +37,7 @@ class Lowest : public QTA::ObjectAbstract
 
     ~Lowest() {}
 
-    inline void handleAndCommitValue(QuantBuffer<QuantReal> & in_buf)
+    inline void handleAndCommitValue(QuantBuffer<QuantReal>& in_buf)
     {
         ff_size_t usable_length = length;
         //cerr << "length = " << length << ", in_buf.size = " << in_buf.size << ", ";
@@ -65,7 +65,7 @@ class Lowest : public QTA::ObjectAbstract
             lowest_so_far = std::numeric_limits<QuantReal>::max();
             #ifdef DESIGN_CHOICE__TA_PTR_ARITH_INSTEAD_OF_BUF_ACCESSOR
             int i = usable_length; // + 1;
-            QuantReal * ptr = in_buf.getPtrTo(i);
+            QuantReal* ptr = in_buf.getPtrTo(i);
             while (--i >= 0) {
                 if (*ptr < lowest_so_far) {
                     lowest_so_far = *ptr;
@@ -86,7 +86,7 @@ class Lowest : public QTA::ObjectAbstract
     }
 
     //inline void operator|= ( QuantReal value ) {
-    inline void operator|= (QuantBuffer<QuantReal> & in_buf)
+    inline void operator|= (QuantBuffer<QuantReal>& in_buf)
     {
         handleAndCommitValue(in_buf);
     }

@@ -21,15 +21,15 @@ class ReversedCircularStructBuffer
 
     ~ReversedCircularStructBuffer() { delete[] buffer; }
 
-    inline operator T & () { return *head_ptr; }
+    inline operator T& () { return *head_ptr; }
     //inline operator const T&() { return *head_ptr; }
 
-    inline T & operator()() { return *head_ptr; }
-    inline const T & last_as_const() const { return *head_ptr; }
+    inline T& operator()() { return *head_ptr; }
+    inline const T& last_as_const() const { return *head_ptr; }
 
     inline void set(T value) { *head_ptr = value; }
 
-    inline T & operator[](int backwards_index) const
+    inline T& operator[](int backwards_index) const
     {
         #if IS_DEBUG
         if (backwards_index > size - 1) {
@@ -48,7 +48,7 @@ class ReversedCircularStructBuffer
         }
     }
 
-    inline T & operator[](int backwards_index)
+    inline T& operator[](int backwards_index)
     {
         #if IS_DEBUG
         if (backwards_index > size - 1) {
@@ -71,7 +71,7 @@ class ReversedCircularStructBuffer
         // return buffer[ix];
     }
 
-    inline T & advance()  // return reference to [0] from here...
+    inline T& advance()   // return reference to [0] from here...
     {
         ++head_ptr;
         if (int(++pos) >= capacity) {
@@ -99,8 +99,8 @@ class ReversedCircularStructBuffer
   private:
     int pos = -1; // We can't make it ofs_t because we need negative number in
     // init *TODO*
-    T * buffer;
-    T * head_ptr;
+    T* buffer;
+    T* head_ptr;
 };
 
 #endif

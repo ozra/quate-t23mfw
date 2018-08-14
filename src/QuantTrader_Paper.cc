@@ -16,7 +16,7 @@ template <bool FOO = true>  // Just to keep it compiling though all inlined.. *T
 class PaperTrader
 {
   public:
-    PaperTrader(QuantFeedAbstract & feed, real balance, natural leverage)
+    PaperTrader(QuantFeedAbstract& feed, real balance, natural leverage)
         : feed(feed)
         , initial_deposit(balance)
         , balance(balance)
@@ -195,7 +195,7 @@ class PaperTrader
         cerr << "\n";
     }
   private:
-    QuantFeedAbstract & feed;
+    QuantFeedAbstract& feed;
     vector<real>           transactions;
     vector<QuantTime>   transaction_times;
     real initial_deposit = 0;

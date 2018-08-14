@@ -62,8 +62,8 @@ class QSDF_Ticks_T23M : public QSDF_T23M_Quant_Abstract,
     // 2014-12-03/Oscar Campbell - seeking to correct start point is done at every startup and thus needs special attention cycle shaving... So we implement a specific "just spool through values" method.
     // - NOPE. No can do. Need to accumulate all values..
     //inline void seek() final;
-    inline bool readTick(QuantTick & tick) final;
-    inline bool writeTick(const QuantTick & tick);
+    inline bool readTick(QuantTick& tick) final;
+    inline bool writeTick(const QuantTick& tick);
 
   protected:
     // const char *    generate_locator_path ( pxt::ptime time_pos );
@@ -74,8 +74,8 @@ class QSDF_Ticks_T23M : public QSDF_T23M_Quant_Abstract,
 
 
     auto generate_locator_path() -> string;
-    auto read_page_header(byte *) -> byte*;
-    auto write_page_header(byte *) -> byte*;
+    auto read_page_header(byte*) -> byte*;
+    auto write_page_header(byte*) -> byte*;
 
   private:
     void calculate_point_factors();
@@ -120,7 +120,7 @@ class QSDF_Ticks_T23M : public QSDF_T23M_Quant_Abstract,
          #   #  #      #    # #    #    #    # #    # #   #
          #    # ###### #    # #####     #    #  ####  #    #
 */
-inline bool QSDF_Ticks_T23M::readTick(QuantTick & tick)
+inline bool QSDF_Ticks_T23M::readTick(QuantTick& tick)
 {
     /*
     //_DPn("readTick()");
@@ -139,7 +139,7 @@ inline bool QSDF_Ticks_T23M::readTick(QuantTick & tick)
             return false;
         }
     }
-    byte * rdptr = raw_buffer.on_free_leash_for(100);
+    byte* rdptr = raw_buffer.on_free_leash_for(100);
     /*
         //_DPn(2);
 
@@ -200,7 +200,7 @@ inline bool QSDF_Ticks_T23M::readTick(QuantTick & tick)
          #    # #    # #   #   ######    #    #  ####  #    #
 
 */
-inline bool QSDF_Ticks_T23M::writeTick(const QuantTick & tick)
+inline bool QSDF_Ticks_T23M::writeTick(const QuantTick& tick)
 {
     _D("writeTick()"
        << "\n");
@@ -232,7 +232,7 @@ inline bool QSDF_Ticks_T23M::writeTick(const QuantTick & tick)
         << raw_tick.bid_volume - prev_raw_tick.bid_volume
         << "\n";
     */
-    byte * wrpos = raw_buffer.on_free_leash_for(100);
+    byte* wrpos = raw_buffer.on_free_leash_for(100);
     raw_buffer.verify_pointer(wrpos);
     _DP(" 4.1 ");
     // Time moves forward only - hence natural number, unsigned,_varint
@@ -284,7 +284,7 @@ inline bool QSDF_Ticks_T23M::writeTick(const QuantTick & tick)
 
 #include "QuantProfiling.hh"
 
-void clear(QuantTickFixed & tick)
+void clear(QuantTickFixed& tick)
 {
     tick.time = tick.ask = tick.bid = tick.ask_volume = tick.bid_volume =
                                           tick.last_price = 0;
@@ -419,10 +419,10 @@ void QSDF_Ticks_T23M::make_case_for_new_page()
     setup_new_output_page();
 }
 
-inline byte * QSDF_Ticks_T23M::read_page_header(byte * rdptr)
+inline byte* QSDF_Ticks_T23M::read_page_header(byte* rdptr)
 {
     _DPn("T23MFWTicks::read_page_header()");
-    const char * foo = nullptr;
+    const char* foo = nullptr;
     foo = read_string(rdptr);
     if (strcmp(foo, broker_id.c_str()) != 0) {
         cerr << "The file is not formatted correctly. Broker-id didn't match: '"
@@ -445,7 +445,7 @@ inline byte * QSDF_Ticks_T23M::read_page_header(byte * rdptr)
     return rdptr;
 }
 
-inline byte * QSDF_Ticks_T23M::write_page_header(byte * wrpos)
+inline byte* QSDF_Ticks_T23M::write_page_header(byte* wrpos)
 {
     _DP("T23MFWTicks::write_page_header()\n");
     current_time_resolution = qts::time_scale::MILLIS;

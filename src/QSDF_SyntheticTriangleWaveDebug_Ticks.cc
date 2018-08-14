@@ -38,7 +38,7 @@ class QSDF_TriangleWaveTicks
 
     bool init(std::string p_broker_id, std::string p_symbol);
 
-    bool readTick(QuantTick & tick) final;
+    bool readTick(QuantTick& tick) final;
 
   private:
     int loadNextChunk();
@@ -52,7 +52,7 @@ class QSDF_TriangleWaveTicks
 
     size_t buf_pos = 0;
     size_t byte_buffer_size = 0;
-    byte * byte_buffer = nullptr;
+    byte* byte_buffer = nullptr;
 };
 
 #endif
@@ -67,7 +67,7 @@ bool QSDF_TriangleWaveTicks::init(std::string p_broker_id,
     return true;
 }
 
-bool QSDF_TriangleWaveTicks::readTick(QuantTick & tick)
+bool QSDF_TriangleWaveTicks::readTick(QuantTick& tick)
 {
     /*
      *

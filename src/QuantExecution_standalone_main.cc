@@ -13,9 +13,9 @@
 
 #include "QuantProfiling.hh"
 
-extern QuantStudyContextAbstract *
-createStrategy(QuantExecutionContext & exec_space, HashTree conf);
-void destroyStrategy(QuantStudyContextAbstract *);
+extern QuantStudyContextAbstract*
+createStrategy(QuantExecutionContext& exec_space, HashTree conf);
+void destroyStrategy(QuantStudyContextAbstract*);
 
 namespace po = boost::program_options;
 
@@ -62,7 +62,7 @@ void doDataTypeTests()
          << "\n";
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
     // clock_t prof_start = clock();
     profiler.start(STARTUP);
@@ -145,7 +145,7 @@ int main(int argc, char ** argv)
                                          is_optimization);
     // strategy_conf.add("start_date", start_date);
     // strategy_conf.add("end_date", end_date);
-    QuantStudyContextAbstract * strategy =
+    QuantStudyContextAbstract* strategy =
         createStrategy(retro_test, strategy_conf);
     cerr << "Init strategy\n";
     cerr << "Connext retroactivator and strategy\n";

@@ -19,8 +19,8 @@ class QuantBufferIntertwinedHeap
     // auto add( AbstractQuantBuffer &buf ) -> QuantBufferIntertwinedHeap &;
     // auto add( AbstractQuantBuffer &buf, ff_size_t size_capacity ) ->
     // QuantBufferIntertwinedHeap &;
-    void add(QuantBufferAbstract & buf);
-    void add(QuantBufferAbstract & buf, ff_size_t size_capacity);
+    void add(QuantBufferAbstract& buf);
+    void add(QuantBufferAbstract& buf, ff_size_t size_capacity);
 
     arbitrary_return_code allocate(); // 0 = ok, else error code
     void advance();
@@ -31,8 +31,8 @@ class QuantBufferIntertwinedHeap
 
   private:
     ff_size_t default_buf_size;
-    QuantTypeSized * heap;
-    QuantTypeSized * heap_end_boundary;
+    QuantTypeSized* heap;
+    QuantTypeSized* heap_end_boundary;
     ff_size_t total_byte_size = 0;
     ff_size_t biggest_size = 0;
     QuantBufferJar buffer_jar;
@@ -54,7 +54,7 @@ QuantBufferIntertwinedHeap::~QuantBufferIntertwinedHeap()
     cerr << "\n\nQuantBufferIntertwinedHeap::~QuantBufferIntertwinedHeap - - "
          "DESTRUCTOR - -"
          << "\n";
-    cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
+    cerr << "(" << (void*)this << ") Heap ptr is " << (void*)heap << "\n";
     delete[] heap;
     cerr << "/ QuantBufferIntertwinedHeap::~QuantBufferIntertwinedHeap - - "
          "DESTRUCTOR - -"
@@ -63,7 +63,7 @@ QuantBufferIntertwinedHeap::~QuantBufferIntertwinedHeap()
 
 // auto QuantBufferIntertwinedHeap::add( AbstractQuantBuffer &buf )
 //  -> QuantBufferIntertwinedHeap&
-void QuantBufferIntertwinedHeap::add(QuantBufferAbstract & buf)
+void QuantBufferIntertwinedHeap::add(QuantBufferAbstract& buf)
 {
     // *TODO* THESE ADD METHODS SHOULD BE OBSOLETE!
     buf.owning_heap = this;
@@ -75,7 +75,7 @@ void QuantBufferIntertwinedHeap::add(QuantBufferAbstract & buf)
 // auto QuantBufferIntertwinedHeap::add( AbstractQuantBuffer &buf, int
 // size_capacity )
 //    -> QuantBufferIntertwinedHeap&
-void QuantBufferIntertwinedHeap::add(QuantBufferAbstract & buf,
+void QuantBufferIntertwinedHeap::add(QuantBufferAbstract& buf,
                                      ff_size_t size_capacity)
 {
     // *TODO* THESE ADD METHODS SHOULD BE OBSOLETE!
@@ -111,10 +111,10 @@ arbitrary_return_code QuantBufferIntertwinedHeap::allocate()
         cerr << "\n\n\nCouldn't allocate memmory for Synchronized Heap!\n\n\n";
         return 1;
     }
-    heap_end_boundary = reinterpret_cast<QuantTypeSized *>(
+    heap_end_boundary = reinterpret_cast<QuantTypeSized*>(
                             heap + (total_byte_size / sizeof(QuantTypeSized)));
-    QuantTypeSized * ptr = heap;
-    cerr << "(" << (int)this << ") Heap ptr is " << (void *)heap << "\n";
+    QuantTypeSized* ptr = heap;
+    cerr << "(" << (void*)this << ") Heap ptr is " << (void*)heap << "\n";
     for (auto buf : buffer_jar.buffers) {
         // buf->relocate_heap_ptr( reinterpret_cast<QuantTypeSized *>( ptr ) );
         // // 141015/ORC
@@ -127,7 +127,7 @@ arbitrary_return_code QuantBufferIntertwinedHeap::allocate()
         #ifdef IS_DEBUG
         // cerr << "Back step from end is: " << (1 - buf->getZeroOffset()) << "
         // zeroOffset itself is " << buf->getZeroOffset() << "\n";
-        cerr << "Buf tail ptr is:" << (void *)buf->tail_ptr
+        cerr << "Buf tail ptr is:" << (void*)buf->tail_ptr
              << "\n"; // (void *)buf->head_ptr << ", "
         #endif
     }
@@ -143,7 +143,7 @@ arbitrary_return_code QuantBufferIntertwinedHeap::allocate()
 void QuantBufferIntertwinedHeap::advance()
 {
     // bool time_for_move = false;
-    QuantBufferAbstract * buffer_to_move = nullptr;
+    QuantBufferAbstract* buffer_to_move = nullptr;
     // ff_size_t typesize;
     for (auto buf : buffer_jar.buffers) {
         // typesize = buf->getDataTypeSize();

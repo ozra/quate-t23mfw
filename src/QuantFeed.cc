@@ -22,7 +22,7 @@ template <class SLOT_T> class QuantFeed : public QuantFeedAbstract
 {
   public:
     QuantFeed(string broker_id, string symbol_id, int lookback = 0,
-              QuantMultiKeeperJar * the_jar = global_actives.active_jar)
+              QuantMultiKeeperJar* the_jar = global_actives.active_jar)
         : QuantFeedAbstract(broker_id, symbol_id, lookback, the_jar) {}
 
     ~QuantFeed() {}
@@ -57,7 +57,7 @@ template <class SLOT_T> class QuantFeed : public QuantFeedAbstract
     }
 
     #ifdef DESIGN_CHOICE__HARD_SIGNALS_INSTEAD_OF_LAMBDA_SIGNALS_FOR_FEEDS
-    HardSignal<SLOT_T, QuantFeedAbstract &> onRegulatedTick_T;
+    HardSignal<SLOT_T, QuantFeedAbstract&> onRegulatedTick_T;
 //#ifndef DESIGN_CHOICE__USER_CHECKED_GHOST_TICK
 //    HardSignal<SLOT_T, QuantFeedAbstract & >                onRealTick_T;
 //#endif

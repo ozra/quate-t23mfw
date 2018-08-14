@@ -61,7 +61,7 @@ class QuantPeriodization : public QuantPeriodizationAbstract
     QuantPeriodization(
         real period,
         natural lookback = PERIODIZATION_DEFAULT_SIZE,
-        QuantMultiKeeperJar * the_jar = global_actives.active_jar
+        QuantMultiKeeperJar* the_jar = global_actives.active_jar
     ) :
         QuantPeriodizationAbstract(
             period,
@@ -72,9 +72,9 @@ class QuantPeriodization : public QuantPeriodizationAbstract
 
     QuantPeriodization(
         double period,
-        QuantFeedAbstract & quant_feed,
+        QuantFeedAbstract& quant_feed,
         int lookback = PERIODIZATION_DEFAULT_SIZE,
-        QuantMultiKeeperJar * the_jar = global_actives.active_jar
+        QuantMultiKeeperJar* the_jar = global_actives.active_jar
     ) :
         QuantPeriodizationAbstract(
             period,

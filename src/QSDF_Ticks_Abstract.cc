@@ -28,14 +28,14 @@ class QSDF_Ticks_Abstract : public QuantSequentialDataAbstract
     void set_streaming_calculation(calculation_type stream_calculation);
 
     //virtual bool seek() = 0;
-    virtual bool readTick(QuantTick & tick) = 0;
-    virtual bool writeTick(const QuantTick & tick);
+    virtual bool readTick(QuantTick& tick) = 0;
+    virtual bool writeTick(const QuantTick& tick);
 };
 
 
 #endif
 
-bool QSDF_Ticks_Abstract::writeTick(const QuantTick &)
+bool QSDF_Ticks_Abstract::writeTick(const QuantTick&)
 {
     throw "Not implemented in";
     return false;
