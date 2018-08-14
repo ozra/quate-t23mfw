@@ -9,7 +9,10 @@
 // #
 #ifdef INTERFACE
 
-#include "StrategyClassChain.hh"
+#include "QuantBasic_DESIGN_CHOICES.hh"
+#include "QuantSuit.hh"
+#include "QTA.hh"
+// #include "StrategyClassChain.hh"
 // #include "StrategyClassChain.hh.coll"
 
 #undef DEBUG_BUF_ONEOFF
@@ -34,7 +37,7 @@ typedef QuantReal QR;
     class name final : public QuantStudyContext<PLOTTING_USED> \
     { \
         using parent = QuantStudyContext<PLOTTING_USED>; \
-        using self = StrategyExample1<PLOTTING_USED>; \
+        using self = name<PLOTTING_USED>; \
         using parent::plot; \
         using parent::plot_ohlc; \
         using parent::close_plot_lap;

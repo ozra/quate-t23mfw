@@ -1,2 +1,10 @@
-include Makefile_the_one.mk
 
+TARGET_TYPE:=DLL
+TARGET:=RELEASE
+# TARGET:=DEBUG
+
+T23MFW_ROOT:=ext/T23MFW
+
+# STRATEGY_FILES:=
+
+include $(T23MFW_ROOT)/build-utils/Make_strategy.mk
