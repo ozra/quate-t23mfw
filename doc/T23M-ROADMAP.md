@@ -8,10 +8,6 @@ T23MFW / T23M RV
 ト23モ ラヲ
 
 
-OT: 24h clock for Android:
- - [ ] https://play.google.com/store/apps/details?id=info.staticfree.android.twentyfourhour&hl=en
- - [ ] physical clock: http://www.botta-design.de/en/einzeigeruhr-uno-24.html
-
 
 * MOVE TO RIGHT PLACE:
     2013-12-04 - 2014-12-04 - shows the classic XBT bubble pattern in short term
@@ -42,9 +38,10 @@ OT: 24h clock for Android:
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## MESSAGING / GRAPEWIRE ##
 
-- [ ] Use protocol buffers
-- [ ] over ZMQ
-- [ ] or WebSocket (web)
+- [ ] Use "protocol buffers"
+- [ ] over "ZMQ"
+- [ ] over "nanomsg"
+- [ ] or "WebSocket" (web)
 
 
 
@@ -55,11 +52,12 @@ OT: 24h clock for Android:
     - [x] NodeJS + HTML5 / JS / Canvas based solution.
 
 - [x] TradeGunQ7
-    - [ ] QT based solution for the swift kind of working a mad scientist needs.
-    - [ ] TECHS:
-        - [ ] http://www.qcustomplot.com/index.php/tutorials/basicplotting
+    - [x] QT based solution for the swift kind of working a mad scientist needs.
+    - [x] TECHS:
+        - [x] http://www.qcustomplot.com/index.php/tutorials/basicplotting
     - [ ] Android version
 
+- [ ] TradeGunOx
 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
