@@ -1,22 +1,10 @@
 include $(T23MFW_ROOT)/build-utils/Make_T23MFW.mk
 
-
-#  *TODO*
-# clang++ \
-#  -ferror-limit=1 -fno-crash-diagnostics -W -Wall -std=c++11 -Werror=return-type -g -O0 -pedantic -march=native -DIS_DEBUG -DIS_DEEPBUG \
-#  -I objs/DbgDev/include/ \
-#  -x c++-header src/StrategyClassChain.hh -o objs/DbgDev/include/StrategyClassChain.hh.pch
-
-#  OR
-
-# clang  -std=c++11 -Iobjs/DbgDev/include/ -P -E src/StrategyClassChain.hh > objs/DbgDev/include/StrategyClassChain.hh.coll
-
-
 # T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_CLANG)
 # T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_CLANG)
 T23MFW_COMPILER_NOBELT=$(T23MFW_COMPILER_NOBELT_GCC)
 T23MFW_LINKER_NOBELT=$(T23MFW_LINKER_NOBELT_GCC)
-
+NOAH_CPP:=$(T23MFW_ROOT)/build-utils/bin/noah-cpp
 
 VPATH=src/:$(T23SRC):$(T23SRC)/QTA/src/
 
@@ -89,17 +77,22 @@ clean:
 # 		$(ALL_OBJ_FILES_DBGDEV) \
 # 		$(STRATEGY_LIBS)
 
+ensure_paths:
+	mkdir -p objs/DbgDev/include
+	mkdir -p objs/DbgFast/include
+	mkdir -p objs/NoBelt/include
+
 syntax: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
+
 objs/DbgDev/include/%.hh: %.cc
 	$(ASTYLING) $< \
-	&& (chmod 666 $@ || true)\
-	&& noah-cpp --fixed-path -o 'objs/DbgDev/include/' $<
+	&& (chmod 666 $@ > /dev/null || true)\
+	&& $(NOAH_CPP) --fixed-path -o 'objs/DbgDev/include/' $<
 objs/DbgDev/%.o: %.cc
 	$(T23MFW_COMPILER_SYNTAX) $(STRATEGY_COMPILE_FLAGS) -Iobjs/DbgDev/include/ -c -o $@ \
 		$<
 
-
-bin/DbgDev/strategy_standalone: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
+bin/DbgDev/strategy_standalone: ensure_paths $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
 	$(T23MFW_LINKER_DBGDEV) $(STRATEGY_LINK_FLAGS) \
 		-o $@ \
 		$(ALL_OBJ_FILES_DBGDEV) \
@@ -108,15 +101,15 @@ bin/DbgDev/strategy_standalone: $(ALL_HH_FILES_DBGDEV) $(ALL_OBJ_FILES_DBGDEV)
 
 objs/DbgDev/include/%.hh: %.cc
 	$(ASTYLING) $< \
-	&& (chmod 666 $@ || true)\
-	&& noah-cpp --fixed-path -o 'objs/DbgDev/include/' $<
+	&& (chmod 666 $@ > /dev/null  || true)\
+	&& $(NOAH_CPP) --fixed-path -o 'objs/DbgDev/include/' $<
 
 objs/DbgDev/%.o: %.cc
 	$(T23MFW_COMPILER_DBGDEV) $(STRATEGY_COMPILE_FLAGS) -Iobjs/DbgDev/include/ -c -o $@ \
 		$<
 
 
-bin/DevFast/strategy_standalone: $(ALL_HH_FILES_DEVFAST) $(ALL_OBJ_FILES_DEVFAST)
+bin/DevFast/strategy_standalone: ensure_paths $(ALL_HH_FILES_DEVFAST) $(ALL_OBJ_FILES_DEVFAST)
 		$(T23MFW_LINKER_DEVFAST) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_DEVFAST) \
 		$(STRATEGY_LIBS) \
@@ -124,7 +117,8 @@ bin/DevFast/strategy_standalone: $(ALL_HH_FILES_DEVFAST) $(ALL_OBJ_FILES_DEVFAST
 
 objs/DevFast/include/%.hh: %.cc
 	$(ASTYLING) $< \
-	&& noah-cpp --fixed-path -o 'objs/DevFast/include/' $<
+	&& (chmod 666 $@ > /dev/null  || true)\
+	&& $(NOAH_CPP) --fixed-path -o 'objs/DevFast/include/' $<
 objs/DevFast/%.o: %.cc
 	$(T23MFW_COMPILER_DEVFAST) $(STRATEGY_COMPILE_FLAGS) -Iobjs/DevFast/include/ -c -o $@ \
 		$<
@@ -134,7 +128,7 @@ objs/DevFast/%.o: %.cc
 # 		-o $@ $(ALL_OBJ_FILES_DEVFAST) \
 # 		$(STRATEGY_LIBS)
 # objs/DevFast/include/%.hh: %.cc
-# 	noah-cpp --fixed-path -o 'objs/DevFast/include/' $<
+# 	$(NOAH_CPP) --fixed-path -o 'objs/DevFast/include/' $<
 # objs/DevFast/%.o: %.cc
 # 	$(T23MFW_COMPILER_DEVFAST) $(STRATEGY_COMPILE_FLAGS) -Iobjs/DevFast/include/ -c -o $@ \
 # 		$<
@@ -146,7 +140,7 @@ objs/DevFast/%.o: %.cc
 
 
 
-bin/NoBelt/strategy_standalone: $(ALL_HH_FILES_NOBELT) $(ALL_OBJ_FILES_NOBELT)
+bin/NoBelt/strategy_standalone: ensure_paths $(ALL_HH_FILES_NOBELT) $(ALL_OBJ_FILES_NOBELT)
 	$(T23MFW_LINKER_NOBELT) $(STRATEGY_LINK_FLAGS) \
 		-o $@ $(ALL_OBJ_FILES_NOBELT) \
 		$(STRATEGY_LIBS) \
@@ -154,7 +148,8 @@ bin/NoBelt/strategy_standalone: $(ALL_HH_FILES_NOBELT) $(ALL_OBJ_FILES_NOBELT)
 
 objs/NoBelt/include/%.hh: %.cc
 	$(ASTYLING) $< \
-	&& noah-cpp --fixed-path -o 'objs/NoBelt/include/' $<
+	&& (chmod 666 $@ > /dev/null  || true)\
+	&& $(NOAH_CPP) --fixed-path -o 'objs/NoBelt/include/' $<
 objs/NoBelt/%.o: %.cc
 	$(T23MFW_COMPILER_NOBELT) $(STRATEGY_COMPILE_FLAGS) -Iobjs/NoBelt/include/ -c -o $@ \
 		$<
