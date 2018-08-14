@@ -1,0 +1,18 @@
+{
+  "name": "t23mfw-build-utils",
+  "version": "1.0.0",
+  "description": "This is here solely to supply nodejs-libs for build-util 'noah-cpp'",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Oscar Campbell",
+  "license": "ISC",
+  "devDependencies": {
+    "colors": "^1.3.1",
+    "optimist": "^0.6.1"
+  }
+}

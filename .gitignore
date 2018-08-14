@@ -2,6 +2,7 @@ var/
 ext/
 junkyard/
 tmp/
+node_modules/
 
 *.o
 *.d
